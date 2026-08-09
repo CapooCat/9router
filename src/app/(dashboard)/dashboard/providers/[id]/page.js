@@ -22,6 +22,7 @@ import AddApiKeyModal from "./AddApiKeyModal";
 import EditCompatibleNodeModal from "./EditCompatibleNodeModal";
 import AddCustomModelModal from "./AddCustomModelModal";
 import BulkImportCodexModal from "./BulkImportCodexModal";
+import ProviderModelsImportModal from "./ProviderModelsImportModal";
 
 const ONE_BY_ONE_DELAY_MS = 1000;
 
@@ -59,6 +60,9 @@ export default function ProviderDetailPage() {
   const [modelsTestError, setModelsTestError] = useState("");
   const [testingModelIds, setTestingModelIds] = useState(() => new Set());
   const [showAddCustomModel, setShowAddCustomModel] = useState(false);
+  const [showFetchedModels, setShowFetchedModels] = useState(false);
+  const [fetchedModels, setFetchedModels] = useState([]);
+  const [fetchingModels, setFetchingModels] = useState(false);
   const [selectedConnectionIds, setSelectedConnectionIds] = useState([]);
   const [bulkProxyPoolId, setBulkProxyPoolId] = useState("__none__");
   const [bulkUpdatingProxy, setBulkUpdatingProxy] = useState(false);
@@ -78,7 +82,6 @@ export default function ProviderDetailPage() {
   const [oneByOneResults, setOneByOneResults] = useState({});
   const [oneByOneSummary, setOneByOneSummary] = useState(null);
   const stopOneByOneRef = useRef(false);
-  const [importingQoderModels, setImportingQoderModels] = useState(false);
   const { copied, copy } = useCopyToClipboard();
 
   const AG_RISK_STORAGE_KEY = "ag_risk_confirmed";
@@ -544,6 +547,75 @@ export default function ProviderDetailPage() {
     }
   };
 
+  const handleFetchModels = async () => {
+    const activeConnections = connections.filter((connection) => connection.isActive !== false);
+    const publicModelsFetcher = isFreeNoAuth ? providerInfo?.modelsFetcher : null;
+    if ((activeConnections.length === 0 && !publicModelsFetcher) || fetchingModels) return;
+
+    setFetchingModels(true);
+    try {
+      if (publicModelsFetcher) {
+        const publicModels = await fetchSuggestedModels(publicModelsFetcher);
+        if (publicModels.length === 0) {
+          alert("No models were returned from the provider.");
+          return;
+        }
+        setFetchedModels(publicModels);
+        setShowFetchedModels(true);
+        return;
+      }
+      const results = await Promise.all(activeConnections.map(async (connection) => {
+        const response = await fetch(`/api/providers/${connection.id}/models`, { cache: "no-store" });
+        const data = await response.json().catch(() => ({}));
+        return { ok: response.ok, data };
+      }));
+      const successfulResults = results.filter((result) => result.ok);
+      if (successfulResults.length === 0) {
+        alert(results.find((result) => result.data?.error)?.data?.error || "Failed to fetch models");
+        return;
+      }
+      const modelsById = new Map();
+      successfulResults.flatMap((result) => result.data.models || []).forEach((model) => {
+        const id = model?.id || model?.model || model?.name;
+        if (!id || modelsById.has(id)) return;
+        modelsById.set(id, { id, name: model.name || model.display_name || model.displayName || id });
+      });
+      if (modelsById.size === 0) {
+        alert("No models were returned from the provider.");
+        return;
+      }
+      setFetchedModels([...modelsById.values()].sort((a, b) => a.name.localeCompare(b.name)));
+      setShowFetchedModels(true);
+    } catch (error) {
+      console.log("Error fetching models:", error);
+      alert("Failed to fetch models");
+    } finally {
+      setFetchingModels(false);
+    }
+  };
+
+  const handleAddFetchedModels = async (selectedModels) => {
+    try {
+      const results = await Promise.all(selectedModels.map(async (model) => {
+        const response = await fetch("/api/models/custom", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ providerAlias: providerStorageAlias, id: model.id, name: model.name, type: "llm" }),
+        });
+        return response.ok;
+      }));
+      if (!results.every(Boolean)) {
+        alert("Some models could not be added.");
+      }
+      await fetchCustomModels();
+      if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("customModelChanged"));
+      setShowFetchedModels(false);
+    } catch (error) {
+      console.log("Error adding fetched models:", error);
+      alert("Failed to add models");
+    }
+  };
+
   const handleDeleteCustomModel = async (modelId, type = "llm", providerAliasOverride = providerStorageAlias) => {
     try {
       const params = new URLSearchParams({ providerAlias: providerAliasOverride, id: modelId, type });
@@ -554,60 +626,6 @@ export default function ProviderDetailPage() {
       }
     } catch (error) {
       console.log("Error deleting custom model:", error);
-    }
-  };
-
-  // Fetch Qoder model list and automatically add to available models
-  const handleImportQoderModels = async () => {
-    if (importingQoderModels) return;
-    const activeConnection = connections.find((conn) => conn.isActive !== false);
-    if (!activeConnection) {
-      alert(translate("Please add an active Qoder connection first"));
-      return;
-    }
-
-    setImportingQoderModels(true);
-    try {
-      const res = await fetch(`/api/providers/${activeConnection.id}/models`);
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.error || translate("Failed to fetch models"));
-        return;
-      }
-      const models = data.models || [];
-      if (models.length === 0) {
-        alert(translate("No models returned"));
-        return;
-      }
-
-      let importedCount = 0;
-      for (const model of models) {
-        const modelId = model.id || model.name;
-        if (!modelId) continue;
-        
-        // Qoder model ID format may be "qoder/auto" or "auto", need to remove prefix
-        const cleanModelId = modelId.replace(/^qoder\//, "");
-        const alreadyExists = customModels.some(
-          (entry) => entry.providerAlias === providerStorageAlias && entry.id === cleanModelId && (entry.kind || entry.type || "llm") === "llm"
-        ) || Object.values(modelAliases).includes(`${providerStorageAlias}/${cleanModelId}`);
-        if (alreadyExists) {
-          continue;
-        }
-
-        await handleAddCustomModel(cleanModelId, "llm", providerStorageAlias);
-        importedCount += 1;
-      }
-      
-      if (importedCount === 0) {
-        alert(translate("All models already exist, no new models added"));
-      } else {
-        alert(translate("Successfully added") + ` ${importedCount} ` + translate("models"));
-      }
-    } catch (error) {
-      console.log("Error importing Qoder models:", error);
-      alert(translate("Error fetching models") + ": " + error.message);
-    } finally {
-      setImportingQoderModels(false);
     }
   };
 
@@ -1171,20 +1189,6 @@ export default function ProviderDetailPage() {
           Add Model
         </button>
 
-        {/* Import Qoder models button — only show for qoder provider */}
-        {providerId === "qoder" && connections.some((conn) => conn.isActive !== false) && (
-          <button
-            onClick={handleImportQoderModels}
-            disabled={importingQoderModels}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-blue-500/40 px-3 py-2 text-xs text-blue-600 dark:text-blue-400 transition-colors hover:border-blue-500 hover:bg-blue-500/5 sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="material-symbols-outlined text-sm" style={importingQoderModels ? { animation: "spin 1s linear infinite" } : undefined}>
-              {importingQoderModels ? "progress_activity" : "download"}
-            </span>
-            {importingQoderModels ? translate("Fetching...") : translate("Fetch Qoder Models")}
-          </button>
-        )}
-
         {/* Suggested models from provider API — show only models not yet added */}
         {suggestedModels.length > 0 && (() => {
           const addedFullModels = new Set([
@@ -1655,14 +1659,18 @@ export default function ProviderDetailPage() {
               </select>
             )}
           </div>
-          {!isCompatible && (() => {
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="secondary" icon="download" onClick={handleFetchModels} loading={fetchingModels} disabled={!isFreeNoAuth && !connections.some((connection) => connection.isActive !== false)}>
+              Fetch Models
+            </Button>
+            {!isCompatible && (() => {
             const allIds = [
               ...models,
               ...kiloFreeModels.filter((fm) => !models.some((m) => m.id === fm.id)),
             ].filter((m) => { const k = getModelKind(m); return !k || k === "llm"; }).map((m) => m.id);
             const activeIds = allIds.filter((id) => !disabledModelIds.includes(id));
             return (
-              <div className="flex gap-2">
+              <>
                 {disabledModelIds.length > 0 && (
                   <Button size="sm" variant="secondary" icon="restart_alt" onClick={handleEnableAll}>
                     Active All
@@ -1673,9 +1681,10 @@ export default function ProviderDetailPage() {
                     Disable All
                   </Button>
                 )}
-              </div>
+              </>
             );
-          })()}
+            })()}
+          </div>
         </div>
         {!!modelsTestError && (
           <p className="text-xs text-red-500 mb-3 break-words">{modelsTestError}</p>
@@ -1741,6 +1750,19 @@ export default function ProviderDetailPage() {
           setShowAddApiKeyModal(false);
         }}
       />
+      {showFetchedModels && (
+        <ProviderModelsImportModal
+          isOpen={showFetchedModels}
+          models={fetchedModels}
+          existingModelIds={[
+            ...models.map((model) => model.id),
+            ...kiloFreeModels.map((model) => model.id),
+            ...getProviderCustomModelRows({ customModels, modelAliases, providerAlias: providerStorageAlias, type: "llm" }).map((model) => model.id),
+          ]}
+          onConfirm={handleAddFetchedModels}
+          onClose={() => setShowFetchedModels(false)}
+        />
+      )}
       <EditConnectionModal
         isOpen={showEditModal}
         connection={selectedConnection}

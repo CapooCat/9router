@@ -25,6 +25,7 @@ export default {
     headers: {
       "x-command-code-version": "0.25.7",
       "x-cli-environment": "cli",
+      "x-cmd-zdr": "1",
     },
   },
   models: [
