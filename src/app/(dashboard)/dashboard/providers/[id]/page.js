@@ -23,6 +23,7 @@ import EditCompatibleNodeModal from "./EditCompatibleNodeModal";
 import AddCustomModelModal from "./AddCustomModelModal";
 import BulkImportCodexModal from "./BulkImportCodexModal";
 import ProviderModelsImportModal from "./ProviderModelsImportModal";
+import ChatPlaygroundCard from "./components/chat-playground/ChatPlaygroundCard";
 
 const ONE_BY_ONE_DELAY_MS = 1000;
 
@@ -196,6 +197,32 @@ export default function ProviderDetailPage() {
   const providerDisplayAlias = isCompatible
     ? (providerNode?.prefix || providerId)
     : providerAlias;
+
+  // Chat-testable models for the playground: same sources the models grid shows,
+  // custom/alias rows first, built-ins after, disabled ones dropped.
+  const playgroundModelOptions = (() => {
+    const customRows = getProviderCustomModelRows({
+      customModels,
+      modelAliases,
+      providerAlias: providerStorageAlias,
+      builtInModels: isCompatible ? [] : models,
+      type: "llm",
+    }).map((row) => ({ id: row.id, name: row.name || row.id }));
+
+    if (isCompatible) return customRows;
+
+    const disabledSet = new Set(disabledModelIds);
+    const seen = new Set(customRows.map((row) => row.id));
+    const builtIns = [
+      ...models,
+      ...kiloFreeModels.filter((fm) => !models.some((m) => m.id === fm.id)),
+    ]
+      .filter((m) => { const k = getModelKind(m); return !k || k === "llm"; })
+      .filter((m) => !disabledSet.has(m.id) && !seen.has(m.id))
+      .map((m) => ({ id: m.id, name: m.name || m.id }));
+
+    return [...customRows, ...builtIns];
+  })();
 
   const fetchDisabledModels = useCallback(async () => {
     try {
@@ -1691,6 +1718,15 @@ export default function ProviderDetailPage() {
         )}
         {renderModelsSection()}
       </Card>
+
+      {/* Chat playground */}
+      <ChatPlaygroundCard
+        providerId={providerId}
+        providerDisplayAlias={providerDisplayAlias}
+        modelOptions={playgroundModelOptions}
+        resolveThinkingSuffix={resolveThinkingSuffix}
+        canSend={connections.length > 0 || isFreeNoAuth}
+      />
 
       {bulkActionModal}
 
