@@ -18,4 +18,9 @@ export default {
     baseUrl: "",
     headers: {},
   },
+  zdr: {
+    mode: "account",
+    note: "No portal toggle: ZDR comes from the Limited Access \"modified abuse monitoring\" approval (aka.ms/oai/modifiedaccess), EA/MCA customers only. Until approved, prompts and completions are retained up to 30 days for abuse review.",
+    docs: "https://learn.microsoft.com/en-us/legal/cognitive-services/openai/data-privacy",
+  },
 };

@@ -24,4 +24,9 @@ export default {
   ],
   serviceKinds: ["llm", "embedding"],
   embeddingConfig: { baseUrl: "https://api.tokenfactory.nebius.com/v1/embeddings" },
+  zdr: {
+    mode: "account",
+    note: "Off unless you switch it on in your account profile page. Until you do, Nebius KEEPS your inputs and outputs to speed up inference via speculative decoding (never for training). With ZDR on, nothing is stored after the request.",
+    docs: "https://docs.tokenfactory.nebius.com/legal/legal-quick-guide",
+  },
 };

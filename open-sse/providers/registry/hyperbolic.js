@@ -32,4 +32,9 @@ export default {
     { id: "Qwen/Qwen2.5-Coder-32B-Instruct", name: "Qwen 2.5 Coder 32B" },
     { id: "NousResearch/Hermes-3-Llama-3.1-70B", name: "Hermes 3 70B" },
   ],
+  zdr: {
+    mode: "default",
+    note: "Stateless inference: requests are processed in real time and not logged, stored or shared — prompts and responses do not persist past the request. Nothing to enable.",
+    docs: "https://www.hyperbolic.ai/inference",
+  },
 };

@@ -38,4 +38,11 @@ export default {
     usage: true,
     usageApikey: true,
   },
+  zdr: {
+    mode: "request",
+    body: { providerOptions: { gateway: { zeroDataRetention: true } } },
+    restrictsRouting: true,
+    note: "Pro/Enterprise only. Filters the routing set (and any fallbacks) to providers Vercel holds a ZDR agreement with; returns no_providers_available when none serve the model. BYOK keys are skipped unless marked ZDR in the dashboard.",
+    docs: "https://vercel.com/docs/ai-gateway/security-and-compliance/zdr",
+  },
 };

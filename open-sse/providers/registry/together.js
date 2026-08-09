@@ -28,4 +28,9 @@ export default {
   ],
   serviceKinds: ["llm", "embedding"],
   embeddingConfig: { baseUrl: "https://api.together.xyz/v1/embeddings" },
+  zdr: {
+    mode: "account",
+    note: "No training on customer data without explicit opt-in; zero data retention is supported but arranged on the account, not per request.",
+    docs: "https://www.together.ai/legal/privacy-policy",
+  },
 };

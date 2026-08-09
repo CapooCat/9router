@@ -25,7 +25,6 @@ export default {
     headers: {
       "x-command-code-version": "0.25.7",
       "x-cli-environment": "cli",
-      "x-cmd-zdr": "1",
     },
   },
   models: [
@@ -41,4 +40,10 @@ export default {
     { id: "Qwen/Qwen3.6-Plus", name: "Qwen 3.6 Plus" },
     { id: "stepfun/Step-3.5-Flash", name: "Step 3.5 Flash" },
   ],
+  zdr: {
+    mode: "request",
+    headers: { "x-cmd-zdr": "1" },
+    restrictsRouting: true,
+    note: "Free-tier models FAIL with x-cmd-zdr set — the zero-retention pool does not serve them. Turn this on only for paid models. The header is deliberately kept out of transport.headers for that reason, so it deviates from the CLI fingerprint (which always sends it) only while you have it enabled.",
+  },
 };

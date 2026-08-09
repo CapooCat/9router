@@ -82,4 +82,9 @@ export default {
     pricingUrl: "https://ai.google.dev/pricing",
     freeTier: "Free tier: 15 RPM, 1M tokens/day on gemini-2.5-flash via AI Studio.",
   },
+  zdr: {
+    mode: "account",
+    note: "Paid tier only, and granted per project by Google approval — once approved, prompts/responses and identifying metadata are cleared before abuse-monitoring logging. The generateContent path 9Router uses takes no ZDR request flag (store:false is the Interactions API; Live API needs SessionResumptionConfig left unset). Grounding with Google Search or Maps stores 30 days and cannot be opted out.",
+    docs: "https://ai.google.dev/gemini-api/docs/zdr",
+  },
 };

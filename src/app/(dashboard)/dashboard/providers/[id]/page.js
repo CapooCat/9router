@@ -24,6 +24,7 @@ import AddCustomModelModal from "./AddCustomModelModal";
 import BulkImportCodexModal from "./BulkImportCodexModal";
 import ProviderModelsImportModal from "./ProviderModelsImportModal";
 import ChatPlaygroundCard from "./components/chat-playground/ChatPlaygroundCard";
+import ZeroDataRetentionCard from "./components/ZeroDataRetentionCard";
 
 const ONE_BY_ONE_DELAY_MS = 1000;
 
@@ -1665,6 +1666,9 @@ export default function ProviderDetailPage() {
           )}
         </Card>
       )}
+
+      {/* Zero Data Retention — renders nothing when this upstream declared no policy */}
+      <ZeroDataRetentionCard providerId={providerId} />
 
       {/* Models */}
       <Card>

@@ -49,3 +49,6 @@ for (const entry of REGISTRY) {
 
 // TTS model/voice tables keyed by special names (openai-tts-models, ...), not provider ids
 Object.assign(PROVIDER_MODELS, buildTtsProviderModels());
+
+// Zero-data-retention policies live outside PROVIDERS (transport is baseline-compared)
+export { PROVIDER_ZDR, getZdrPolicy, listZdrPolicies, applyZdrToBody, zdrHeadersFor } from "./zdr.js";

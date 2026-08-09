@@ -29,4 +29,9 @@ export default {
     { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
   ],
   serviceKinds: ["llm","imageToText"],
+  zdr: {
+    mode: "account",
+    note: "Paid Vertex traffic is never used to improve Google's products, but zero-retention-equivalent terms come from a Data Processing Addendum amendment arranged with your Google Cloud account team — no request flag. Search grounding still stores 30 days.",
+    docs: "https://cloud.google.com/vertex-ai/generative-ai/docs/data-governance",
+  },
 };

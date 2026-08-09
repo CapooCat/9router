@@ -27,4 +27,9 @@ export default {
     { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet" },
   ],
   serviceKinds: ["llm","imageToText"],
+  zdr: {
+    mode: "account",
+    note: "ZDR is a commercial-agreement option, not a request flag; without it inputs/outputs are deleted within 30 days. Since 2026-06-09 Mythos-class models retain prompts and outputs for 30 days even under a ZDR agreement. Usage-policy-flagged conversations are kept 2 years.",
+    docs: "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
+  },
 };

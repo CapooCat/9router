@@ -44,4 +44,9 @@ export default {
     endpoint: "https://api.x.ai/v1/responses",
     pricingUrl: "https://x.ai/api#pricing",
   },
+  zdr: {
+    mode: "account",
+    note: "Not ZDR by default — requests/responses are stored encrypted for 30 days (never trained on without permission). Team admins can self-serve ZDR in the xAI Console; it applies to every key on the team and disables the stateful Responses API, Files, Collections and Batch. Responses carry x-zero-data-retention: true|false.",
+    docs: "https://docs.x.ai/developers/faq/security",
+  },
 };

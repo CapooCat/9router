@@ -34,4 +34,9 @@ export default {
     authHeader: "bearer",
     format: "openai",
   },
+  zdr: {
+    mode: "default",
+    note: "No inference data retained by default and no training on inputs/outputs. Prompts may still be logged (max 30 days) while troubleshooting or investigating abuse; opt out of that — and enable full ZDR — self-serve under Console → Data Controls.",
+    docs: "https://console.groq.com/docs/legal",
+  },
 };

@@ -28,4 +28,9 @@ export default {
     { id: "qwen-3-235b-a22b-instruct-2507", name: "Qwen3 235B A22B" },
     { id: "qwen-3-32b", name: "Qwen3 32B" },
   ],
+  zdr: {
+    mode: "default",
+    note: "Prompt content, API requests/responses and chat logs are not retained — data is processed for the response and discarded, never stored, logged or reused for training. Nothing to enable.",
+    docs: "https://support.cerebras.net/articles/1811589793-does-cerebras-retain-my-data",
+  },
 };

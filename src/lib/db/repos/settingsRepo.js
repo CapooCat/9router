@@ -43,6 +43,10 @@ const DEFAULT_SETTINGS = {
   mitmRouterBaseUrl: DEFAULT_MITM_ROUTER_BASE,
   dnsToolEnabled: {},
   rtkEnabled: true,
+  // Zero data retention, opted in per provider: { [providerId]: true }. Not global —
+  // ZDR-filtering gateways (OpenRouter, Vercel, Blackbox) can fail a request outright
+  // when no zero-retention endpoint serves the model, so it is enabled per upstream.
+  zdrProviders: {},
   headroomEnabled: false,
   headroomUrl: DEFAULT_HEADROOM_URL,
   headroomCompressUserMessages: false,

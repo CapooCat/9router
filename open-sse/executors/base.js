@@ -97,7 +97,9 @@ export class BaseExecutor {
     return { status: response.status, message: bodyText || `HTTP ${response.status}` };
   }
 
-  async execute({ model, body, stream, credentials, signal, log, proxyOptions = null }) {
+  // upstreamExtraHeaders: caller-supplied overlay merged after buildHeaders (ZDR knobs).
+  // Executors that override execute() opt out — none of them declare header-mode ZDR.
+  async execute({ model, body, stream, credentials, signal, log, proxyOptions = null, upstreamExtraHeaders = null }) {
     const fallbackCount = this.getFallbackCount();
     let lastError = null;
     let lastStatus = 0;
@@ -128,6 +130,7 @@ export class BaseExecutor {
       const url = this.buildUrl(model, stream, urlIndex, credentials);
       const transformedBody = this.transformRequest(model, body, stream, credentials);
       const headers = this.buildHeaders(credentials, stream, url, model);
+      if (upstreamExtraHeaders) Object.assign(headers, upstreamExtraHeaders);
 
       if (!retryAttemptsByUrl[urlIndex]) retryAttemptsByUrl[urlIndex] = 0;
 

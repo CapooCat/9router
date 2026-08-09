@@ -53,4 +53,9 @@ export default {
   },
   modelsFetcher: { url: "https://api.venice.ai/api/v1/models", type: "openai" },
   passthroughModels: true,
+  zdr: {
+    mode: "default",
+    note: "Prompt and response content is not stored or logged for normal inference, and GPU partners are contractually barred from storing it. The privacy tier is a property of the MODEL, not the request — /models reports model_spec.privacy (\"anonymized\" or \"private\") plus supportsTeeAttestation / supportsE2EE. Pick the model to pick the guarantee; there is no request-level override.",
+    docs: "https://docs.venice.ai/overview/privacy",
+  },
 };

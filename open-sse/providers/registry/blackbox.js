@@ -38,4 +38,11 @@ export default {
     { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", upstreamModelId: "blackboxai/deepseek/deepseek-v4-flash" },
     { id: "grok-4.3",          name: "Grok 4.3",          upstreamModelId: "blackboxai/x-ai/grok-4.3" },
   ],
+  zdr: {
+    mode: "request",
+    body: { provider: { zdr: true } },
+    restrictsRouting: true,
+    note: "Blackbox's own layer already discards prompts, code context and completions from memory after the response — the flag is about the UPSTREAM hop: it restricts routing to endpoints that themselves hold a zero-retention policy, so a model with none fails instead of falling back. ORs with the account-wide setting. Codex-style encrypted_content is decrypted in memory only, so reasoning continuity survives ZDR.",
+    docs: "https://docs.blackbox.ai/api-reference/zdr",
+  },
 };

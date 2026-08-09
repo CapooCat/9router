@@ -91,6 +91,17 @@ export default {
     // { id: "example-emb", name: "Example Embed", type: "embedding" },
   ],
 
+  // ── zero data retention → PROVIDER_ZDR[id] (see providers/zdr.js) ────────
+  // Declare ONLY what the vendor documents; leave the block out when unknown.
+  // zdr: {
+  //   mode: "request",                       // "request" | "account" | "default"
+  //   body: { store: false },                // deep-merged into the outbound body when ZDR is on
+  //   headers: { "x-example-zdr": "1" },     // merged onto upstream headers when ZDR is on
+  //   restrictsRouting: true,                // enabling it can fail the request (filtered endpoints / excluded models)
+  //   note: "Enterprise agreement only; abuse-monitoring retention still applies.",
+  //   docs: "https://example.com/docs/zdr",
+  // },
+
   // ── optional flags ───────────────────────────────────────────────────────
   // features: { usage: true },
   // thinkingConfig: { options: ["auto", "none", "low", "high"], defaultMode: "auto" },
