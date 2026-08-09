@@ -1,5 +1,9 @@
 // Pure helpers for the provider chat playground.
-// No React, no fetch, no imports — everything here is directly unit-testable.
+// No React, no fetch — everything here is directly unit-testable.
+
+// Re-exported so playground components keep a single import surface; the router
+// models modal on /dashboard/endpoint uses the shared copy too.
+export { formatTokens } from "@/shared/utils/formatTokens";
 
 /** Coerce an OpenAI content value (string | array of parts | null) to plain text. */
 export function textValue(value) {
@@ -92,19 +96,6 @@ export function computeMetrics({ t0, tFirst, tEnd, usage, text = "", reasoning =
     exact,
     tps: outTokens > 0 ? outTokens / (genMs / 1000) : 0,
   };
-}
-
-/** 948 · 12.4k · 1M — compact token counts for badges and the context meter. */
-export function formatTokens(n) {
-  const value = Number(n);
-  if (!Number.isFinite(value) || value <= 0) return "—";
-  if (value < 1000) return String(Math.round(value));
-  if (value < 1_000_000) {
-    const k = value / 1000;
-    return `${k < 100 && k % 1 >= 0.05 ? k.toFixed(1) : Math.round(k)}k`;
-  }
-  const m = value / 1_000_000;
-  return `${m % 1 >= 0.05 ? m.toFixed(1) : Math.round(m)}M`;
 }
 
 /** ms → "820ms" / "6.7s" */

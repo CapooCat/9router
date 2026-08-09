@@ -17,8 +17,10 @@ import EndpointRow from "./components/EndpointRow";
 import StatusAlert from "./components/StatusAlert";
 import Tooltip from "./components/Tooltip";
 import SecurityWarning from "./components/SecurityWarning";
+import RouterModelsModal from "./components/RouterModelsModal";
 export default function APIPageClient({ machineId }) {
   const [keys, setKeys] = useState([]);
+  const [showModelsModal, setShowModelsModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
@@ -720,10 +722,20 @@ export default function APIPageClient({ machineId }) {
     <div className="flex flex-col gap-8">
       {/* Endpoint Card */}
       <Card>
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">api</span>
-          API Endpoint
-        </h2>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">api</span>
+            API Endpoint
+          </h2>
+          <Button
+            size="sm"
+            variant="secondary"
+            icon="format_list_bulleted"
+            onClick={() => setShowModelsModal(true)}
+          >
+            Browse Models
+          </Button>
+        </div>
 
         {/* Endpoint rows */}
         <div className="flex flex-col gap-2">
@@ -1075,6 +1087,13 @@ export default function APIPageClient({ machineId }) {
           </div>
         )}
       </Card>
+
+      {/* Router Models Modal */}
+      <RouterModelsModal
+        isOpen={showModelsModal}
+        onClose={() => setShowModelsModal(false)}
+        apiKey={keys.find((k) => k.isActive !== false)?.key || ""}
+      />
 
       {/* Add Key Modal */}
       <Modal
