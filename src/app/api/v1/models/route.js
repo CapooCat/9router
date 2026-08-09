@@ -18,6 +18,8 @@ import { resolveZedModels } from "open-sse/shared/zedAuth.js";
 import { updateProviderCredentials } from "@/sse/services/tokenRefresh";
 import { resolveConnectionProxyConfig } from "@/lib/network/connectionProxy";
 import { capabilitiesFromServiceKind, getCapabilitiesForModel } from "open-sse/providers/capabilities.js";
+import { mergeUpstreamCaps } from "open-sse/providers/upstreamCaps.js";
+import { fetchRuntimeContextWindow } from "@/shared/utils/compatibleModelMeta";
 
 // Per-provider live model resolvers. Each receives a connection record and
 // returns { models: [{ id, name? }, ...] } | null on failure.
@@ -129,7 +131,7 @@ const parseOpenAIStyleModels = (data) => {
   return data?.data || data?.models || data?.results || [];
 };
 
-// Header sent by fetchCompatibleModelIds to detect cross-instance /models fetches
+// Header sent by fetchCompatibleModels to detect cross-instance /models fetches
 // and break recursive loops between 9router instances connected to each other.
 const INTERNAL_MODELS_FETCH_HEADER = "x-9r-internal-models-fetch";
 
@@ -163,14 +165,23 @@ function inferKindFromUnknownModelId(modelId) {
   return LLM_KIND;
 }
 
-async function fetchCompatibleModelIds(connection) {
-  if (!connection?.apiKey) return [];
+const EMPTY_COMPATIBLE_CATALOG = { ids: [], capsById: new Map() };
+
+/**
+ * Fetch an OpenAI/Anthropic-compatible provider's catalog, keeping the per-model
+ * limits it advertises. Self-hosted servers (llama.cpp, vLLM, LM Studio, …) run
+ * model ids getCapabilitiesForModel() has no pattern for, so without this their
+ * context window silently falls back to DEFAULT_CAPABILITIES (200k).
+ * @returns {Promise<{ ids: string[], capsById: Map<string, object> }>}
+ */
+async function fetchCompatibleModels(connection) {
+  if (!connection?.apiKey) return EMPTY_COMPATIBLE_CATALOG;
 
   const baseUrl = typeof connection?.providerSpecificData?.baseUrl === "string"
     ? connection.providerSpecificData.baseUrl.trim().replace(/\/$/, "")
     : "";
 
-  if (!baseUrl) return [];
+  if (!baseUrl) return EMPTY_COMPATIBLE_CATALOG;
 
   let url = `${baseUrl}/models`;
   const headers = {
@@ -189,7 +200,7 @@ async function fetchCompatibleModelIds(connection) {
     headers["anthropic-version"] = "2023-06-01";
     headers.Authorization = `Bearer ${connection.apiKey}`;
   } else {
-    return [];
+    return EMPTY_COMPATIBLE_CATALOG;
   }
 
   try {
@@ -203,20 +214,34 @@ async function fetchCompatibleModelIds(connection) {
     });
     clearTimeout(timeoutId);
 
-    if (!response.ok) return [];
+    if (!response.ok) return EMPTY_COMPATIBLE_CATALOG;
 
     const data = await response.json();
     const rawModels = parseOpenAIStyleModels(data);
 
-    return Array.from(
-      new Set(
-        rawModels
-          .map((model) => model?.id || model?.name || model?.model)
-          .filter((modelId) => typeof modelId === "string" && modelId.trim() !== "")
-      )
-    );
+    // llama.cpp advertises the model's TRAINING context in /v1/models; the ctx
+    // the server is really running with comes from /props. null elsewhere.
+    const runtimeContextWindow = await fetchRuntimeContextWindow(baseUrl, headers);
+
+    const ids = [];
+    const capsById = new Map();
+    for (const model of rawModels) {
+      const modelId = model?.id || model?.name || model?.model;
+      if (typeof modelId !== "string" || modelId.trim() === "") continue;
+      if (capsById.has(modelId)) continue;
+      ids.push(modelId);
+      capsById.set(
+        modelId,
+        mergeUpstreamCaps(
+          getCapabilitiesForModel(connection.provider, modelId),
+          model,
+          runtimeContextWindow,
+        ),
+      );
+    }
+    return { ids, capsById };
   } catch {
-    return [];
+    return EMPTY_COMPATIBLE_CATALOG;
   }
 }
 
@@ -243,7 +268,7 @@ function comboMatchesKinds(combo, kindFilter) {
  */
 export async function buildModelsList(kindFilter, options = {}) {
   // When this header is present, the /v1/models request came from another
-  // 9router instance's fetchCompatibleModelIds — skip dynamic fetch to break
+  // 9router instance's fetchCompatibleModels — skip dynamic fetch to break
   // cross-instance recursive loops.
   const skipDynamicFetch = options.skipDynamicFetch === true;
   let connections = [];
@@ -364,6 +389,7 @@ export async function buildModelsList(kindFilter, options = {}) {
       );
       let liveModelKindById = new Map();
       let liveCapabilitiesById = new Map();
+      let upstreamCapabilitiesById = new Map();
 
       let rawModelIds = hasExplicitEnabledModels
         ? Array.from(
@@ -375,8 +401,14 @@ export async function buildModelsList(kindFilter, options = {}) {
           )
         : providerModels.map((model) => model.id);
 
-      if (isCompatibleProvider && rawModelIds.length === 0 && !skipDynamicFetch) {
-        rawModelIds = await fetchCompatibleModelIds(conn);
+      // Compatible providers are fetched even when the model list is already
+      // known (explicit enabledModels / static catalog) — the catalog carries
+      // the per-model limits, which is the only place a self-hosted model's real
+      // context window comes from.
+      if (isCompatibleProvider && !skipDynamicFetch) {
+        const catalog = await fetchCompatibleModels(conn);
+        upstreamCapabilitiesById = catalog.capsById;
+        if (rawModelIds.length === 0) rawModelIds = catalog.ids;
       }
 
       // Config-driven live catalog override (e.g. Kiro returns dynamic
@@ -481,7 +513,8 @@ export async function buildModelsList(kindFilter, options = {}) {
         // { id, name } — no per-model capability data. Fall back to the same
         // pattern-matched capabilities the dashboard uses (useModelCaps.js) so
         // dynamically-discovered LLM models still surface vision/reasoning/search/tools.
-        const caps = liveCapabilitiesById.get(modelId)
+        const caps = (kind === LLM_KIND ? upstreamCapabilitiesById.get(modelId) : null)
+          || liveCapabilitiesById.get(modelId)
           || capabilitiesFromServiceKind(customKind || liveKind)
           || (kind === LLM_KIND ? getCapabilitiesForModel(providerId, modelId) : null);
         if (caps) model.capabilities = caps;

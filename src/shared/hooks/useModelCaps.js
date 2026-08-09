@@ -3,11 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { getCapabilitiesForModel } from "open-sse/providers/capabilities.js";
 
-// Module cache: one /api/models fetch shared by every useModelCaps instance.
+// Module cache: one /api/models + /v1/models fetch shared by every instance.
 let cache = null; // { byFull, byId } | null
 let inflight = null;
 
-function buildMaps(models) {
+const EMPTY_MAPS = { byFull: {}, byId: {} };
+
+function buildMaps(models, routerModels) {
   const byFull = {};
   const byId = {};
   for (const m of models || []) {
@@ -16,22 +18,42 @@ function buildMaps(models) {
     if (m.routedModel) byFull[m.routedModel] = m.caps;
     if (m.model) byId[m.model] = m.caps;
   }
+  // /v1/models is the router's live catalog. It carries the limits a compatible
+  // provider actually advertised — a self-hosted llama.cpp/vLLM model id matches
+  // no capability pattern, so without this its context window reads as the 200k
+  // DEFAULT_CAPABILITIES floor. /api/models cannot know: it serves static
+  // AI_MODELS only. Live entries win on exact id; a bare id is only claimed when
+  // free, so one provider's model cannot shadow a built-in of the same name.
+  for (const m of routerModels || []) {
+    const caps = m?.capabilities;
+    if (!m?.id || !caps) continue;
+    byFull[m.id] = caps;
+    const slash = m.id.indexOf("/");
+    const bare = slash > 0 ? m.id.slice(slash + 1) : m.id;
+    if (!byId[bare]) byId[bare] = caps;
+  }
   return { byFull, byId };
+}
+
+async function fetchJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url} ${res.status}`);
+  return res.json();
 }
 
 function loadModelCaps() {
   if (cache) return Promise.resolve(cache);
   if (inflight) return inflight;
-  inflight = fetch("/api/models")
-    .then(async (res) => {
-      if (!res.ok) throw new Error(`models ${res.status}`);
-      const data = await res.json();
-      cache = buildMaps(data.models);
+  // allSettled: /v1/models hits live upstreams and may fail or be slow — that
+  // must not cost us the static caps, and vice versa.
+  inflight = Promise.allSettled([fetchJson("/api/models"), fetchJson("/v1/models")])
+    .then(([staticRes, liveRes]) => {
+      const staticModels = staticRes.status === "fulfilled" ? staticRes.value?.models : null;
+      const liveModels = liveRes.status === "fulfilled" ? liveRes.value?.data : null;
+      // Both dead — keep cache null so a later mount can retry.
+      if (!staticModels && !liveModels) return EMPTY_MAPS;
+      cache = buildMaps(staticModels, liveModels);
       return cache;
-    })
-    .catch(() => {
-      // Keep null so a later mount can retry
-      return { byFull: {}, byId: {} };
     })
     .finally(() => { inflight = null; });
   return inflight;
