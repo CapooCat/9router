@@ -49,6 +49,48 @@ export function readDelta(chunk) {
   return { content, reasoning };
 }
 
+const THINK_OPEN = /<think(?:ing)?>/i;
+const THINK_CLOSE = /<\/think(?:ing)?>/i;
+
+/**
+ * Split inline <think>...</think> blocks out of visible content.
+ * Some models emit chain-of-thought as tags in the content stream instead of a reasoning field;
+ * an unclosed tag means the block is still arriving, so everything after it counts as reasoning.
+ */
+export function splitInlineThinking(text) {
+  if (!text || !THINK_OPEN.test(text)) return { content: text || "", reasoning: "" };
+
+  let content = "";
+  let reasoning = "";
+  let rest = text;
+
+  while (rest) {
+    const open = rest.match(THINK_OPEN);
+    if (!open) {
+      content += rest;
+      break;
+    }
+    content += rest.slice(0, open.index);
+    rest = rest.slice(open.index + open[0].length);
+
+    const close = rest.match(THINK_CLOSE);
+    if (!close) {
+      reasoning += rest;
+      break;
+    }
+    reasoning += rest.slice(0, close.index);
+    rest = rest.slice(close.index + close[0].length);
+  }
+
+  return { content, reasoning };
+}
+
+/** Merge a provider's reasoning field with any inline <think> block found in the content. */
+export function mergeThinking(content, reasoning = "") {
+  const split = splitInlineThinking(content);
+  return { text: split.content, reasoning: `${reasoning}${split.reasoning}` };
+}
+
 /**
  * Normalize a usage payload across OpenAI / Claude / Gemini field names.
  * Mirrors extractUsageFromResponse() in open-sse/handlers/chatCore/requestDetail.js —

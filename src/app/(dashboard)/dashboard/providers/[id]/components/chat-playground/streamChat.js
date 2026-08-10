@@ -1,4 +1,4 @@
-import { readDelta, readUsage } from "./metrics";
+import { mergeThinking, readDelta, readUsage } from "./metrics";
 
 const CHAT_ENDPOINT = "/api/v1/chat/completions";
 
@@ -55,11 +55,10 @@ export async function streamChat({ apiKey, body, signal, onDelta, url = CHAT_END
   if (!reader) {
     const data = await res.json().catch(() => ({}));
     const delta = readDelta(data);
-    text = delta.content;
-    reasoning = delta.reasoning;
+    const merged = mergeThinking(delta.content, delta.reasoning);
     usage = readUsage(data);
     const tEnd = now();
-    return { text, reasoning, usage, t0, tFirst: tEnd, tEnd, aborted };
+    return { ...merged, usage, t0, tFirst: tEnd, tEnd, aborted };
   }
 
   const decoder = new TextDecoder();
@@ -98,7 +97,7 @@ export async function streamChat({ apiKey, body, signal, onDelta, url = CHAT_END
         if (tFirst === null) tFirst = now();
         text += delta.content;
         reasoning += delta.reasoning;
-        onDelta?.({ text, reasoning });
+        onDelta?.(mergeThinking(text, reasoning));
       }
     }
   } catch (error) {
@@ -106,5 +105,5 @@ export async function streamChat({ apiKey, body, signal, onDelta, url = CHAT_END
     aborted = true;
   }
 
-  return { text, reasoning, usage, t0, tFirst, tEnd: now(), aborted };
+  return { ...mergeThinking(text, reasoning), usage, t0, tFirst, tEnd: now(), aborted };
 }
