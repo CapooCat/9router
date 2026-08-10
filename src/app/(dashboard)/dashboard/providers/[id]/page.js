@@ -12,7 +12,7 @@ import { getThinkingLevels } from "open-sse/providers/thinkingLevels.js";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useModelCaps } from "@/shared/hooks/useModelCaps";
 import { translate } from "@/i18n/runtime";
-import { fetchSuggestedModels } from "@/shared/utils/providerModelsFetcher";
+import { fetchSuggestedModels, fetchModelsFromConnections } from "@/shared/utils/providerModelsFetcher";
 import { getProviderCustomModelRows } from "@/shared/utils/providerCustomModels";
 import ModelRow from "./ModelRow";
 import PassthroughModelsSection from "./PassthroughModelsSection";
@@ -578,45 +578,27 @@ export default function ProviderDetailPage() {
   const handleFetchModels = async () => {
     const activeConnections = connections.filter((connection) => connection.isActive !== false);
     const publicModelsFetcher = isFreeNoAuth ? providerInfo?.modelsFetcher : null;
-    if ((activeConnections.length === 0 && !publicModelsFetcher) || fetchingModels) return;
+
+    // First matching source wins.
+    const source = [
+      { when: !!publicModelsFetcher, do: () => fetchSuggestedModels(publicModelsFetcher) },
+      { when: activeConnections.length > 0, do: () => fetchModelsFromConnections(activeConnections) },
+    ].find((candidate) => candidate.when);
+
+    if (!source || fetchingModels) return;
 
     setFetchingModels(true);
     try {
-      if (publicModelsFetcher) {
-        const publicModels = await fetchSuggestedModels(publicModelsFetcher);
-        if (publicModels.length === 0) {
-          alert("No models were returned from the provider.");
-          return;
-        }
-        setFetchedModels(publicModels);
-        setShowFetchedModels(true);
-        return;
-      }
-      const results = await Promise.all(activeConnections.map(async (connection) => {
-        const response = await fetch(`/api/providers/${connection.id}/models`, { cache: "no-store" });
-        const data = await response.json().catch(() => ({}));
-        return { ok: response.ok, data };
-      }));
-      const successfulResults = results.filter((result) => result.ok);
-      if (successfulResults.length === 0) {
-        alert(results.find((result) => result.data?.error)?.data?.error || "Failed to fetch models");
-        return;
-      }
-      const modelsById = new Map();
-      successfulResults.flatMap((result) => result.data.models || []).forEach((model) => {
-        const id = model?.id || model?.model || model?.name;
-        if (!id || modelsById.has(id)) return;
-        modelsById.set(id, { id, name: model.name || model.display_name || model.displayName || id });
-      });
-      if (modelsById.size === 0) {
+      const fetched = await source.do();
+      if (fetched.length === 0) {
         alert("No models were returned from the provider.");
         return;
       }
-      setFetchedModels([...modelsById.values()].sort((a, b) => a.name.localeCompare(b.name)));
+      setFetchedModels(fetched);
       setShowFetchedModels(true);
     } catch (error) {
       console.log("Error fetching models:", error);
-      alert("Failed to fetch models");
+      alert(error.message || "Failed to fetch models");
     } finally {
       setFetchingModels(false);
     }
