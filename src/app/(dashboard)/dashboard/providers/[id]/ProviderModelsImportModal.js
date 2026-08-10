@@ -50,7 +50,7 @@ export default function ProviderModelsImportModal({ isOpen, models, existingMode
     }
   };
 
-  const allFilteredSelected = filteredModels.length > 0 && filteredModels.every((model) => selectedIds.includes(model.id));
+  const allSelected = availableModels.length > 0 && availableModels.every((model) => selectedIds.includes(model.id));
 
   return (
     <Modal
@@ -82,15 +82,15 @@ export default function ProviderModelsImportModal({ isOpen, models, existingMode
           <label className="flex cursor-pointer items-center gap-2 text-xs text-text-muted">
             <input
               type="checkbox"
-              checked={allFilteredSelected}
+              checked={allSelected}
               onChange={() => setSelectedIds((current) => {
-                const filteredIds = filteredModels.map((model) => model.id);
-                return allFilteredSelected
-                  ? current.filter((id) => !filteredIds.includes(id))
-                  : [...new Set([...current, ...filteredIds])];
+                const availableIds = availableModels.map((model) => model.id);
+                return allSelected
+                  ? current.filter((id) => !availableIds.includes(id))
+                  : [...new Set([...current, ...availableIds])];
               })}
             />
-            Select all shown ({filteredModels.length})
+            Select all ({availableModels.length})
           </label>
           <div className="max-h-80 overflow-y-auto rounded-lg border border-border custom-scrollbar">
             {filteredModels.map((model) => (
