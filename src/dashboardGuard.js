@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSettings, validateApiKey } from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { verifyDashboardAuthToken } from "@/lib/auth/dashboardSession";
+import { TWO_FACTOR_LOCAL_ONLY_PATHS, TWO_FACTOR_PUBLIC_PATHS } from "@/lib/auth/twoFactor/paths";
 
 const CLI_TOKEN_HEADER = "x-9r-cli-token";
 const CLI_TOKEN_SALT = "9r-cli-auth";
@@ -29,6 +30,8 @@ const PUBLIC_API_PATHS = [
   "/api/auth/oidc",
   "/api/version",
   "/api/settings/require-login",
+  // Ticket-gated 2FA step: reached after the password but before a session exists.
+  ...TWO_FACTOR_PUBLIC_PATHS,
 ];
 
 // Public top-level prefixes (LLM API endpoints with their own API key auth).
@@ -82,6 +85,8 @@ const LOCAL_ONLY_PATHS = [
   "/api/headroom/start",
   "/api/headroom/stop",
   "/api/headroom/proxy",
+  // Break-glass 2FA reset, driven by the CLI on the host.
+  ...TWO_FACTOR_LOCAL_ONLY_PATHS,
 ];
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);

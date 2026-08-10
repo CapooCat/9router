@@ -418,6 +418,25 @@ async function resetPassword() {
   return makeRequest("POST", "/api/auth/reset-password");
 }
 
+/**
+ * Two-factor status summary (never returns the secret or any backup-code hash).
+ * Needed here because /api/settings deliberately knows nothing about 2FA.
+ * @returns {Promise<Object>} { success, data: { enabled, broken, backupCodesRemaining, ... } }
+ */
+async function getTwoFactorStatus() {
+  return makeRequest("GET", "/api/auth/2fa/status");
+}
+
+/**
+ * Disable two-factor and delete the stored TOTP secret. Break-glass path for a lost
+ * authenticator with no backup codes left, and for a `broken` state that fails login
+ * closed. Local/CLI only server-side; the password is left untouched.
+ * @returns {Promise<Object>} { success }
+ */
+async function resetTwoFactor() {
+  return makeRequest("POST", "/api/auth/2fa/reset");
+}
+
 // ============================================================================
 // MODELS API
 // ============================================================================
@@ -537,6 +556,8 @@ module.exports = {
   getSettings,
   updateSettings,
   resetPassword,
+  getTwoFactorStatus,
+  resetTwoFactor,
   
   // Tunnel
   getTunnelStatus,

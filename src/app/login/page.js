@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, Button, Input } from "@/shared/components";
+import TwoFactorChallenge from "@/shared/components/twoFactor/TwoFactorChallenge";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [oidcLoginLabel, setOidcLoginLabel] = useState("Sign in with OIDC");
   const [mustChange, setMustChange] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [twoFactorStep, setTwoFactorStep] = useState(false);
 
   // Countdown for rate-limit
   useEffect(() => {
@@ -72,6 +74,13 @@ export default function LoginPage() {
 
       if (res.ok) {
         const data = await res.json();
+        // 2FA is checked before mustChangePassword: with a second factor pending there
+        // is no session yet, so the password-change PATCH would fail. Keep `password`
+        // in state — handleSetNewPassword still needs it as currentPassword.
+        if (data.twoFactorRequired) {
+          setTwoFactorStep(true);
+          return;
+        }
         if (data.mustChangePassword) {
           setMustChange(true);
           return;
@@ -153,6 +162,20 @@ export default function LoginPage() {
               <p className="text-sm text-amber-600 dark:text-amber-400 text-center">
                 Set a new password before accessing the dashboard remotely.
               </p>
+              {/* Reachable when the 2FA step was resumed from a probe rather than a typed
+                  password, so `password` is empty and would PATCH an invalid currentPassword. */}
+              {!password && (
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">Current password</label>
+                  <Input
+                    type="password"
+                    placeholder="Enter current password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium">New password</label>
                 <Input
@@ -170,6 +193,32 @@ export default function LoginPage() {
               </Button>
             </form>
           ) : (
+          <>
+            {/* Mounted even when inactive: it probes for a ticket left behind by an
+                OIDC round-trip, a refresh, or a second tab. */}
+            <TwoFactorChallenge
+              active={twoFactorStep}
+              onPending={() => setTwoFactorStep(true)}
+              onVerified={(data) => {
+                if (data?.mustChangePassword) {
+                  setTwoFactorStep(false);
+                  setMustChange(true);
+                  return;
+                }
+                window.location.assign("/dashboard");
+              }}
+              // Called with a reason when the server kicked us out (too many wrong
+              // codes, expired ticket), so the password form shows why immediately
+              // rather than looking like a spontaneous logout.
+              onCancel={(info) => {
+                setTwoFactorStep(false);
+                setPassword("");
+                setError(info?.error || "");
+                setResetHint(info?.resetHint || "");
+                setRetryAfter(info?.retryAfter ? Number(info.retryAfter) : 0);
+              }}
+            />
+            {!twoFactorStep && (
           <div className="flex flex-col gap-4">
             {oidcAvailable && (
               <Button type="button" variant="primary" className="w-full" onClick={handleOidcLogin}>
@@ -209,11 +258,6 @@ export default function LoginPage() {
                       Locked. Retry in <span className="font-mono">{retryAfter}s</span>.
                     </p>
                   )}
-                  {resetHint && (
-                    <p className="text-xs text-text-muted">
-                      Forgot password? Open <code className="bg-sidebar px-1 rounded">9router</code> CLI on the host → <b>Settings</b> → <b>Reset Password to Default</b>.
-                    </p>
-                  )}
                 </div>
 
                 <Button
@@ -239,6 +283,8 @@ export default function LoginPage() {
               error && <p className="text-xs text-red-500">{error}</p>
             )}
           </div>
+            )}
+          </>
           )}
         </Card>
       </div>

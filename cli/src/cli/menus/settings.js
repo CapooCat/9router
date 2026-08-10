@@ -2,6 +2,7 @@ const api = require("../api/client");
 const { confirm, pause } = require("../utils/input");
 const { showStatus } = require("../utils/display");
 const { showMenuWithBack } = require("../utils/menuHelper");
+const { twoFactorHeaderLine, twoFactorMenuItems } = require("./twoFactor");
 
 // ANSI colors
 const COLORS = {
@@ -46,17 +47,20 @@ async function showSettingsMenu(breadcrumb = []) {
       const authMode = data?.settings?.authMode || "password";
       const authColor = authMode === "password" ? COLORS.green : COLORS.yellow;
       lines.push(`  Auth:     ${authColor}${authMode.toUpperCase()}${COLORS.reset} ${COLORS.dim}(login mode)${COLORS.reset}`);
+      lines.push(twoFactorHeaderLine(data));
 
       return lines.join("\n");
     },
     refresh: async () => {
-      const [tunnelRes, settingsRes] = await Promise.all([
+      const [tunnelRes, settingsRes, twoFactorRes] = await Promise.all([
         api.getTunnelStatus(),
-        api.getSettings()
+        api.getSettings(),
+        api.getTwoFactorStatus()
       ]);
       return {
         tunnel: tunnelRes.success ? (tunnelRes.data || {}) : {},
-        settings: settingsRes.success ? (settingsRes.data || {}) : {}
+        settings: settingsRes.success ? (settingsRes.data || {}) : {},
+        twoFactor: twoFactorRes.success ? (twoFactorRes.data || {}) : {}
       };
     },
     items: [
@@ -92,7 +96,8 @@ async function showSettingsMenu(breadcrumb = []) {
           return mode === "password" ? "🔓 Reset Auth Mode (already password)" : `🔓 Reset Auth Mode to Password (current: ${mode})`;
         },
         action: async () => { await resetAuthMode(); return true; }
-      }
+      },
+      ...twoFactorMenuItems()
     ]
   });
 }

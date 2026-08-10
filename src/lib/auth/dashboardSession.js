@@ -71,6 +71,14 @@ export function clearDashboardAuthCookie(cookieStore) {
   cookieStore.delete("auth_token");
 }
 
+// Raw JWT secret, for deriving domain-separated subkeys (see lib/auth/twoFactor/secret.js).
+// Exposed so other token families can key off the same rotation without duplicating
+// the resolution order (env → DATA_DIR file → generated), and without ever being
+// signable by, or verifiable against, the session SECRET.
+export function getJwtSecretRaw() {
+  return loadJwtSecret();
+}
+
 // Verify the current dashboard password (re-auth for sensitive actions).
 export async function verifyDashboardPassword(password) {
   if (typeof password !== "string" || !password) return false;

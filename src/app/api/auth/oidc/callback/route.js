@@ -10,11 +10,15 @@ import {
   verifyOidcIdToken,
 } from "@/lib/auth/oidc";
 import { setDashboardAuthCookie } from "@/lib/auth/dashboardSession";
+import { twoFactorOidcGate } from "@/lib/auth/twoFactor/gate";
+import { clearTwoFactorTicketCookie } from "@/lib/auth/twoFactor/ticket";
 
 function clearOidcCookies(cookieStore) {
   cookieStore.delete("oidc_state");
   cookieStore.delete("oidc_nonce");
   cookieStore.delete("oidc_code_verifier");
+  // A stale ticket from an abandoned password login must not linger into an OIDC attempt.
+  clearTwoFactorTicketCookie(cookieStore);
 }
 
 export async function GET(request) {
@@ -72,12 +76,24 @@ export async function GET(request) {
     });
 
     clearOidcCookies(cookieStore);
-    await setDashboardAuthCookie(cookieStore, request, {
+    const claims = {
       oidc: true,
       oidcSub: payload.sub || null,
       oidcEmail: pickOidcEmail(payload) || null,
       oidcName: pickOidcDisplayName(payload),
+    };
+
+    // 2FA enabled → carry the verified identity in a signed ticket and send the user
+    // to the code step instead of issuing a session here.
+    const twoFactor = await twoFactorOidcGate({
+      request,
+      cookieStore,
+      claims,
+      origin: getPublicOrigin(request),
     });
+    if (twoFactor) return twoFactor;
+
+    await setDashboardAuthCookie(cookieStore, request, claims);
 
     return NextResponse.redirect(new URL("/dashboard", getPublicOrigin(request)));
   } catch (error) {
