@@ -1,7 +1,6 @@
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS, getModelKind } from "@/shared/constants/models";
 import {
   AI_PROVIDERS,
-  ALIAS_TO_ID,
   getProviderAlias,
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
@@ -20,8 +19,6 @@ import { updateProviderCredentials } from "@/sse/services/tokenRefresh";
 import { resolveConnectionProxyConfig } from "@/lib/network/connectionProxy";
 import { capabilitiesFromServiceKind, getCapabilitiesForModel } from "open-sse/providers/capabilities.js";
 import { mergeUpstreamCaps } from "open-sse/providers/upstreamCaps.js";
-import { comboCapsFromMembers, decorateModelEntry } from "open-sse/providers/modelCatalogEntry.js";
-import { getPricingForModel } from "open-sse/providers/pricing.js";
 import { fetchRuntimeContextWindow } from "@/shared/utils/compatibleModelMeta";
 
 // Per-provider live model resolvers. Each receives a connection record and
@@ -169,24 +166,6 @@ function inferKindFromUnknownModelId(modelId) {
 }
 
 const EMPTY_COMPATIBLE_CATALOG = { ids: [], capsById: new Map() };
-
-// "alias/model-id" → resolved capabilities. Combo members are stored in that
-// form; the alias may be a provider alias or a raw provider id.
-function capsForQualifiedModel(qualifiedId) {
-  if (typeof qualifiedId !== "string" || !qualifiedId.includes("/")) return null;
-  const slash = qualifiedId.indexOf("/");
-  const alias = qualifiedId.slice(0, slash);
-  const modelId = qualifiedId.slice(slash + 1);
-  if (!modelId) return null;
-  return getCapabilitiesForModel(ALIAS_TO_ID[alias] || alias, modelId);
-}
-
-// Combos have no upstream catalog of their own — their limits are whatever every
-// member can honour (see comboCapsFromMembers).
-function capsForCombo(combo) {
-  if ((combo?.kind || LLM_KIND) !== LLM_KIND) return null;
-  return comboCapsFromMembers((combo?.models || []).map(capsForQualifiedModel));
-}
 
 /**
  * Fetch an OpenAI/Anthropic-compatible provider's catalog, keeping the per-model
@@ -349,9 +328,7 @@ export async function buildModelsList(kindFilter, options = {}) {
     if (combo.kind === "webSearch" || combo.kind === "webFetch") {
       entry.kind = combo.kind;
     }
-    const comboCaps = capsForCombo(combo);
-    if (comboCaps) entry.capabilities = comboCaps;
-    models.push(decorateModelEntry(entry, comboCaps));
+    models.push(entry);
   }
 
   if (connections.length === 0) {
@@ -365,19 +342,11 @@ export async function buildModelsList(kindFilter, options = {}) {
       for (const model of providerModels) {
         if (!kindFilter.includes(modelKind(model))) continue;
         if (isDisabled(alias, model.id)) continue;
-        const kind = modelKind(model);
-        const caps = kind === LLM_KIND
-          ? getCapabilitiesForModel(providerId, model.id)
-          : capabilitiesFromServiceKind(kind);
-        const entry = {
+        models.push({
           id: `${alias}/${model.id}`,
           object: "model",
           owned_by: alias,
-        };
-        if (caps) entry.capabilities = caps;
-        models.push(decorateModelEntry(entry, caps, {
-          pricing: kind === LLM_KIND ? getPricingForModel(providerId, model.id) : null,
-        }));
+        });
       }
     }
 
@@ -391,13 +360,11 @@ export async function buildModelsList(kindFilter, options = {}) {
       const modelId = String(customModel.id).trim();
       if (!modelId) continue;
 
-      const caps = getCapabilitiesForModel(ALIAS_TO_ID[providerAlias] || providerAlias, modelId);
-      models.push(decorateModelEntry({
+      models.push({
         id: `${providerAlias}/${modelId}`,
         object: "model",
         owned_by: providerAlias,
-        capabilities: caps,
-      }, caps));
+      });
     }
   } else {
     for (const [providerId, conn] of activeConnectionByProvider.entries()) {
@@ -551,28 +518,26 @@ export async function buildModelsList(kindFilter, options = {}) {
           || capabilitiesFromServiceKind(customKind || liveKind)
           || (kind === LLM_KIND ? getCapabilitiesForModel(providerId, modelId) : null);
         if (caps) model.capabilities = caps;
-        models.push(decorateModelEntry(model, caps, {
-          pricing: kind === LLM_KIND ? getPricingForModel(providerId, modelId) : null,
-        }));
+        models.push(model);
       }
 
       // Web search/fetch — provider IS the model, expose as {alias}/search and/or {alias}/fetch with explicit kind
       const providerInfo = AI_PROVIDERS[providerId];
       if (kindFilter.includes("webSearch") && providerInfo?.searchConfig) {
-        models.push(decorateModelEntry({
+        models.push({
           id: `${outputAlias}/search`,
           object: "model",
           kind: "webSearch",
           owned_by: outputAlias,
-        }, null));
+        });
       }
       if (kindFilter.includes("webFetch") && providerInfo?.fetchConfig) {
-        models.push(decorateModelEntry({
+        models.push({
           id: `${outputAlias}/fetch`,
           object: "model",
           kind: "webFetch",
           owned_by: outputAlias,
-        }, null));
+        });
       }
     }
   }

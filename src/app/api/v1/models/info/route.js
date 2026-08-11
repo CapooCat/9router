@@ -1,9 +1,6 @@
 import { PROVIDER_MODELS } from "open-sse/config/providerModels.js";
 import { AI_PROVIDERS, ALIAS_TO_ID } from "@/shared/constants/providers";
 import { getModelKind } from "@/shared/constants/models";
-import { capabilitiesFromServiceKind, getCapabilitiesForModel } from "open-sse/providers/capabilities.js";
-import { decorateModelEntry } from "open-sse/providers/modelCatalogEntry.js";
-import { getPricingForModel } from "open-sse/providers/pricing.js";
 
 const KIND_ENDPOINT = {
   llm: "/v1/chat/completions",
@@ -27,23 +24,10 @@ function buildInfo({ alias, providerId, model, kind, providerInfo }) {
     endpoint: KIND_ENDPOINT[kind] || null,
   };
   if (model.params) out.params = model.params;
+  if (model.capabilities) out.capabilities = model.capabilities;
   if (model.options) out.options = model.options;
   if (model.dimensions) out.dimensions = model.dimensions;
-
-  // PROVIDER_MODELS carries no limits — they come from the capability tables,
-  // with the model's own declared capabilities layered on top.
-  const isChatKind = kind === "llm" || kind === "imageToText";
-  const caps = isChatKind
-    ? { ...getCapabilitiesForModel(providerId, model.id), ...(model.capabilities || {}) }
-    : (model.capabilities || capabilitiesFromServiceKind(kind));
-  if (caps) {
-    out.capabilities = caps;
-    if (caps.contextWindow) out.contextWindow = caps.contextWindow;
-    if (caps.maxOutput) out.maxOutput = caps.maxOutput;
-  }
-  decorateModelEntry(out, caps, {
-    pricing: isChatKind ? getPricingForModel(providerId, model.id) : null,
-  });
+  if (model.contextWindow) out.contextWindow = model.contextWindow;
   if (kind === "tts" && TTS_VOICES_API.has(providerId)) {
     out.voicesUrl = `/v1/audio/voices?provider=${providerId}`;
   }
