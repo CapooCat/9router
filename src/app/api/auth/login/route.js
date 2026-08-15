@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { setDashboardAuthCookie } from "@/lib/auth/dashboardSession";
 import { isOidcConfigured } from "@/lib/auth/oidc";
+import { isSamlConfigured } from "@/lib/auth/saml.js";
 import { checkLock, recordFail, recordSuccess, getClientIp } from "@/lib/auth/loginLimiter";
 import { isLocalRequest } from "@/dashboardGuard";
 import { twoFactorLoginGate } from "@/lib/auth/twoFactor/gate";
@@ -40,8 +41,14 @@ export async function POST(request) {
     // Default password is '123456' if not set
     const storedHash = settings.password;
 
-    if (settings.authMode === "oidc" && isOidcConfigured(settings)) {
-      return NextResponse.json({ error: "Password login is disabled. Use OIDC sign in." }, { status: 403 });
+    if (settings.authMode === "sso" || settings.authMode === "saml" || settings.authMode === "oidc") {
+      const ssoType = settings.ssoType || (settings.authMode === "saml" ? "saml" : "oidc");
+      if (ssoType === "saml" && isSamlConfigured(settings)) {
+        return NextResponse.json({ error: "Password login is disabled. Use SAML SSO sign in." }, { status: 403 });
+      }
+      if (ssoType === "oidc" && isOidcConfigured(settings)) {
+        return NextResponse.json({ error: "Password login is disabled. Use OIDC sign in." }, { status: 403 });
+      }
     }
 
     let isValid = false;
@@ -61,16 +68,43 @@ export async function POST(request) {
       const mustChangePassword =
         !storedHash && !process.env.INITIAL_PASSWORD && !isLocalRequest(request);
 
+      // Checked BEFORE the 2FA gate: a 2FA ticket is itself a credential, so a
+      // remote client on the default password must not be able to obtain one.
+      if (mustChangePassword) {
+        // Do NOT issue a session token: a fresh install's default password is
+        // public knowledge ("123456"), so handing out a valid JWT would let any
+        // remote attacker authenticate and (e.g.) PATCH /api/settings to disable
+        // authentication entirely (CVE-2026-56679 class). Require the password
+        // to be changed first.
+        //
+        // NOTE: this intentionally leaves no remote self-service password-change
+        // path — the change-password flow (PATCH /api/settings) requires a JWT,
+        // which we deliberately withhold. A remote fresh-install user must either
+        // change the password from the local machine or set INITIAL_PASSWORD
+        // before first launch. This is a deliberate security trade-off, not an
+        // oversight: issuing any credential before the default password is
+        // rotated re-opens the exact attack chain this branch closes.
+        //
+        // The limiter is deliberately left untouched here: no credential was
+        // issued, and recordSuccess() would clear the progressive lockout ladder.
+        return NextResponse.json(
+          { success: false, error: "Default password must be changed before remote access. Change it from the local machine (or set INITIAL_PASSWORD).", mustChangePassword },
+          { status: 403, headers: NO_STORE_HEADERS }
+        );
+      }
+
       // 2FA enabled → issue a ticket instead of a session, and leave the rate
       // limiter untouched (recordSuccess would wipe the progressive lockout ladder,
       // handing anyone who knows the password unlimited code guesses).
+      // mustChangePassword is always false past the guard above; it stays wired in
+      // so the ticket keeps carrying the flag if that rule ever loosens.
       const twoFactor = await twoFactorLoginGate({ request, cookieStore, mustChangePassword });
       if (twoFactor) return twoFactor;
 
       recordSuccess(ip);
       await setDashboardAuthCookie(cookieStore, request);
 
-      return NextResponse.json({ success: true, mustChangePassword }, { headers: NO_STORE_HEADERS });
+      return NextResponse.json({ success: true, mustChangePassword: false }, { headers: NO_STORE_HEADERS });
     }
 
     const { remainingBeforeLock } = recordFail(ip);
