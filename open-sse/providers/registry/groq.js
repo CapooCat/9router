@@ -17,6 +17,12 @@ export default {
   transport: {
     baseUrl: "https://api.groq.com/openai/v1/chat/completions",
     validateUrl: "https://api.groq.com/openai/v1/models",
+    // No dedicated quota endpoint; rate-limit info rides on x-ratelimit-*
+    // response headers, always included. Reuse the models list (already
+    // used as validateUrl) so reading usage never costs tokens.
+    usage: {
+      url: "https://api.groq.com/openai/v1/models",
+    },
   },
   models: [
     { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B" },
@@ -38,5 +44,9 @@ export default {
     mode: "default",
     note: "No inference data retained by default and no training on inputs/outputs. Prompts may still be logged (max 30 days) while troubleshooting or investigating abuse; opt out of that — and enable full ZDR — self-serve under Console → Data Controls.",
     docs: "https://console.groq.com/docs/legal",
+  },
+  features: {
+    usage: true,
+    usageApikey: true,
   },
 };
