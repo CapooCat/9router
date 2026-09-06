@@ -142,6 +142,14 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
     stream = false;
   }
 
+  // OpenAI spec: `stream` defaults to false. The Vercel AI SDK's generateText()
+  // (n8n instance-ai, any @ai-sdk/openai-compatible client) omits `stream` AND
+  // sends no Accept header, then JSON.parses the body — SSE reaches the user as
+  // "Invalid JSON response". Honor the spec default for OpenAI-format clients.
+  if (sourceFormat === FORMATS.OPENAI && body.stream === undefined && !clientPrefersSSE && !providerRequiresStreaming) {
+    stream = false;
+  }
+
   const reqLogger = await createRequestLogger(sourceFormat, targetFormat, model);
   if (clientRawRequest) reqLogger.logClientRawRequest(clientRawRequest.endpoint, clientRawRequest.body, clientRawRequest.headers);
   reqLogger.logRawRequest(body);
