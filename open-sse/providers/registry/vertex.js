@@ -27,11 +27,18 @@ export default {
     { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite Preview" },
     { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
     { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+    { id: "veo-3.1-generate-preview", name: "Veo 3.1 (Preview)", params: ["duration","aspect_ratio","resolution","negative_prompt","seed","storage_uri","generate_audio"], kind: "video" },
+    { id: "veo-3.1-fast-generate-preview", name: "Veo 3.1 Fast (Preview)", params: ["duration","aspect_ratio","resolution","negative_prompt","seed","storage_uri","generate_audio"], kind: "video" },
+    { id: "veo-3.0-generate-001", name: "Veo 3", params: ["duration","aspect_ratio","resolution","negative_prompt","seed","storage_uri","generate_audio"], kind: "video" },
+    { id: "veo-2.0-generate-001", name: "Veo 2", params: ["duration","aspect_ratio","negative_prompt","seed","storage_uri"], kind: "video" },
   ],
-  serviceKinds: ["llm","imageToText"],
+  serviceKinds: ["llm","imageToText","video"],
   zdr: {
     mode: "account",
     note: "Paid Vertex traffic is never used to improve Google's products, but zero-retention-equivalent terms come from a Data Processing Addendum amendment arranged with your Google Cloud account team — no request flag. Search grounding still stores 30 days.",
     docs: "https://cloud.google.com/vertex-ai/generative-ai/docs/data-governance",
   },
+  // Veo via predictLongRunning + fetchPredictOperation (adapter: handlers/videoProviders/vertex.js).
+  // Docs: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/veo-video-generation
+  videoConfig: { baseUrl: "https://aiplatform.googleapis.com" },
 };
