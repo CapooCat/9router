@@ -26,6 +26,7 @@ import BulkImportGrokCliModal from "./BulkImportGrokCliModal";
 import ProviderModelsImportModal from "./ProviderModelsImportModal";
 import ChatPlaygroundCard from "./components/chat-playground/ChatPlaygroundCard";
 import ZeroDataRetentionCard from "./components/ZeroDataRetentionCard";
+import CustomConfigCard from "./CustomConfigCard";
 
 const ONE_BY_ONE_DELAY_MS = 1000;
 
@@ -1696,6 +1697,9 @@ export default function ProviderDetailPage() {
 
       {/* Zero Data Retention — renders nothing when this upstream declared no policy */}
       <ZeroDataRetentionCard providerId={providerId} />
+
+      {/* Per-provider user overrides (custom headers / connect timeout) */}
+      <CustomConfigCard providerId={providerId} />
 
       {/* Models */}
       <Card>

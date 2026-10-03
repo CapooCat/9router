@@ -99,7 +99,7 @@ export class BaseExecutor {
 
   // upstreamExtraHeaders: caller-supplied overlay merged after buildHeaders (ZDR knobs).
   // Executors that override execute() opt out — none of them declare header-mode ZDR.
-  async execute({ model, body, stream, credentials, signal, log, proxyOptions = null, upstreamExtraHeaders = null }) {
+  async execute({ model, body, stream, credentials, signal, log, proxyOptions = null, providerOverrides = null, upstreamExtraHeaders = null }) {
     const fallbackCount = this.getFallbackCount();
     let lastError = null;
     let lastStatus = 0;
@@ -130,6 +130,9 @@ export class BaseExecutor {
       const url = this.buildUrl(model, stream, urlIndex, credentials);
       const transformedBody = this.transformRequest(model, body, stream, credentials);
       const headers = this.buildHeaders(credentials, stream, url, model, transformedBody);
+      // User per-provider override wins over registry headers (blocked names filtered at the API)
+      if (providerOverrides?.headers) Object.assign(headers, providerOverrides.headers);
+      // ZDR knobs go last so a custom header row can't silently undo opted-in retention settings
       if (upstreamExtraHeaders) Object.assign(headers, upstreamExtraHeaders);
 
       if (!retryAttemptsByUrl[urlIndex]) retryAttemptsByUrl[urlIndex] = 0;
