@@ -29,6 +29,7 @@ import { compressWithHeadroom, formatHeadroomLog, formatHeadroomSizeLog, isHeadr
 import { compressWithPxpipe } from "../rtk/pxpipe.js";
 import { getCapabilitiesForModel } from "../providers/capabilities.js";
 import { applyZdrToBody, zdrHeadersFor } from "../providers/zdr.js";
+import { observeCompatibleUpstream } from "../services/serverProps.js"; // [fork]
 import { stripUnsupportedModalities } from "../translator/concerns/modality.js";
 import { prefetchRemoteImages } from "../translator/concerns/prefetch.js";
 import { defaultClaudeToolType, shouldDefaultClaudeToolType } from "../translator/concerns/toolCall.js";
@@ -177,6 +178,8 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
 
   // Expose raw client headers to translators/executors for session-id resolution
   if (credentials) credentials.rawHeaders = clientRawRequest?.headers || {};
+
+  await observeCompatibleUpstream(provider, model, upstreamModel, credentials); // [fork] llama.cpp server caps, see services/serverProps.js
 
   // Auto-strip media blocks the model can't read (vision/audio/pdf) before translation.
   if (!passthrough) {

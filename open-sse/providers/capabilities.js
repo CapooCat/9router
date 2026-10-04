@@ -37,6 +37,7 @@
 
 import { matchPattern } from "./pricing.js";
 import { looksLikeVisionModel } from "./visionPatterns.js";
+import { applyUpstreamFeatures } from "./upstreamFeatures.js"; // [fork]
 
 /**
  * Safe floor — every resolved result is merged over this so consumers
@@ -579,6 +580,7 @@ function refine(base, provider, model) {
   }
 
   if (!result.vision && looksLikeVisionModel(model)) result.vision = true;
+  applyUpstreamFeatures(result, provider, model); // [fork] server-stated caps (llama.cpp /props)
 
   return result;
 }

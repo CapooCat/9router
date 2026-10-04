@@ -1,4 +1,5 @@
-// Per-model limits advertised by OpenAI-compatible upstreams.
+// Per-model limits (and, further down, modalities + reasoning) advertised by
+// OpenAI-compatible upstreams.
 //
 // getCapabilitiesForModel() only knows models it has a pattern or an exact entry
 // for, so any self-hosted / unknown model id falls through to
@@ -146,6 +147,80 @@ export function maxOutputFromUpstreamModel(entry) {
   return readFirst(MAX_OUTPUT_READERS, entry);
 }
 
+// ── Modalities & reasoning ───────────────────────────────────────────
+// Self-hosted model ids (a llama.cpp `--alias`, a GGUF filename) match no
+// capability pattern, so vision/reasoning fall to false and the request path
+// strips images and thinking params the server could have handled.
+
+const MODALITY_KEYS = ["vision", "audioInput", "videoInput"];
+
+// `architecture.input_modalities` token → capability. llama.cpp router mode
+// publishes this per model (copying OpenRouter's shape).
+const INPUT_MODALITY_TO_CAP = { image: "vision", audio: "audioInput", video: "videoInput" };
+
+// Chat-template source markers of a reasoning model: Qwen3/GLM `enable_thinking`,
+// DeepSeek-R1 `<think>`, gpt-oss `reasoning_effort`, templates that replay
+// `reasoning_content`. Covers llama.cpp builds older than chat_template_caps.
+const REASONING_TEMPLATE_MARKERS = ["enable_thinking", "<think>", "reasoning_content", "reasoning_effort"];
+
+/**
+ * Features a /v1/models entry states. Catalog listings only ever turn a feature
+ * ON — leaving a modality out of a list is not a statement that it is missing.
+ */
+function entryFeatureOverrides(entry) {
+  const overrides = {};
+  const inputs = entry?.architecture?.input_modalities;
+  if (Array.isArray(inputs)) {
+    for (const token of inputs) {
+      const key = INPUT_MODALITY_TO_CAP[String(token).toLowerCase()];
+      if (key) overrides[key] = true;
+    }
+  }
+  return overrides;
+}
+
+function templateCanReason(props) {
+  const caps = props.chat_template_caps;
+  if (caps?.supports_reasoning_effort === true || caps?.supports_preserve_reasoning === true) return true;
+  const template = typeof props.chat_template === "string" ? props.chat_template : "";
+  return REASONING_TEMPLATE_MARKERS.some((marker) => template.includes(marker));
+}
+
+/**
+ * Capabilities llama-server states about the model it is running, from /props:
+ *   { default_generation_settings: { n_ctx }, modalities: { vision, audio, video },
+ *     chat_template, chat_template_caps: { supports_reasoning_effort, ... } }
+ * `modalities` reflects the loaded mmproj, so it is authoritative both ways — a
+ * -vl model launched without --mmproj rejects images. Reasoning only turns ON.
+ * A router's own /props (role: "router") is a placeholder and yields {}.
+ */
+export function capsFromServerProps(props) {
+  const caps = {};
+  if (!props || typeof props !== "object" || props.role === "router") return caps;
+
+  const contextWindow = toPositiveInt(props.default_generation_settings?.n_ctx)
+    ?? toPositiveInt(props.default_generation_settings?.params?.n_ctx)
+    ?? toPositiveInt(props.n_ctx);
+  if (contextWindow) caps.contextWindow = contextWindow;
+
+  const modalities = props.modalities;
+  if (modalities && typeof modalities === "object") {
+    if (typeof modalities.vision === "boolean") caps.vision = modalities.vision;
+    if (typeof modalities.audio === "boolean") caps.audioInput = modalities.audio;
+    if (typeof modalities.video === "boolean") caps.videoInput = modalities.video;
+  }
+
+  if (templateCanReason(props)) caps.reasoning = true;
+  return caps;
+}
+
+// Runtime caps arrive as a capsFromServerProps() object, or as a bare context
+// window number from older callers.
+function normalizeRuntime(runtime) {
+  if (typeof runtime === "number" || typeof runtime === "string") return { contextWindow: runtime };
+  return runtime && typeof runtime === "object" ? runtime : {};
+}
+
 /**
  * Capability deltas an upstream model entry justifies. Empty object when the
  * upstream said nothing — merging it is then a no-op.
@@ -156,16 +231,33 @@ export function upstreamCapsOverrides(entry) {
   if (contextWindow) overrides.contextWindow = contextWindow;
   const maxOutput = maxOutputFromUpstreamModel(entry);
   if (maxOutput) overrides.maxOutput = maxOutput;
+  Object.assign(overrides, entryFeatureOverrides(entry));
+  return overrides;
+}
+
+/**
+ * Feature deltas (modalities + reasoning, no limits) from a catalog entry and
+ * the server's runtime caps. This is what the request path needs to know: the
+ * server's own runtime statement wins over the catalog listing.
+ */
+export function upstreamFeatureOverrides(entry, runtime = null) {
+  const overrides = entryFeatureOverrides(entry);
+  const stated = normalizeRuntime(runtime);
+  for (const key of MODALITY_KEYS) {
+    if (typeof stated[key] === "boolean") overrides[key] = stated[key];
+  }
+  if (stated.reasoning === true) overrides.reasoning = true;
   return overrides;
 }
 
 /** Clamp maxOutput to the context window — some servers report a larger one. */
-export function mergeUpstreamCaps(baseCaps, entry, runtimeContextWindow = null) {
-  const overrides = upstreamCapsOverrides(entry);
-  const runtime = toPositiveInt(runtimeContextWindow);
+export function mergeUpstreamCaps(baseCaps, entry, runtime = null) {
+  const stated = normalizeRuntime(runtime);
+  const overrides = { ...upstreamCapsOverrides(entry), ...upstreamFeatureOverrides(entry, stated) };
+  const runtimeContextWindow = toPositiveInt(stated.contextWindow);
   // The running server's ctx (llama.cpp /props) beats anything the model card
   // advertises — a model with 256k training ctx served with `-c 8192` is 8192.
-  if (runtime) overrides.contextWindow = runtime;
+  if (runtimeContextWindow) overrides.contextWindow = runtimeContextWindow;
   if (Object.keys(overrides).length === 0) return baseCaps;
 
   const merged = { ...baseCaps, ...overrides };
