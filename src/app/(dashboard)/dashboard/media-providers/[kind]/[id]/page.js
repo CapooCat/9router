@@ -7,7 +7,7 @@ import { Card, Badge, Button, AddCustomEmbeddingModal, NoAuthProxyCard, Provider
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { MEDIA_PROVIDER_KINDS, AI_PROVIDERS, isCustomEmbeddingProvider } from "@/shared/constants/providers";
 import ConnectionsCard from "@/app/(dashboard)/dashboard/providers/components/ConnectionsCard";
-import ModelsCard from "@/app/(dashboard)/dashboard/providers/components/ModelsCard";
+import ModelsCard from "./components/MediaModelsCard"; // [fork] adds remove/restore of models
 import { KIND_EXAMPLE_CONFIG } from "./components/exampleShared";
 import { EmbeddingExampleCard } from "./components/EmbeddingExampleCard";
 import { TtsExampleCard } from "./components/TtsExampleCard";
