@@ -95,4 +95,9 @@ export default {
     // so isUsageEligible + /api/usage allow non-oauth authType.
     usageApikey: true,
   },
+  zdr: {
+    mode: "none",
+    note: "Moonshot sets no time limit on keeping API prompts and may use them to improve its services unless a written agreement says otherwise. There's no self-serve zero-retention option.",
+    docs: "https://platform.kimi.ai/docs/agreement/modeluse.md",
+  },
 };

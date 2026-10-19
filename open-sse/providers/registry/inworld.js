@@ -32,5 +32,10 @@ export default {
         name: "Inworld TTS 1.5 Max ($0.025/min)"
       }
     ]
-  }
+  },
+  zdr: {
+    mode: "account",
+    note: "Not on by default. On an Enterprise plan, an owner or admin can turn on zero retention for the whole organization or one workspace under Team settings > Data Retention; voice-cloning samples are still kept.",
+    docs: "https://docs.inworld.ai/portal/zero-data-retention",
+  },
 };

@@ -69,4 +69,9 @@ export default {
     usage: true,
     usageApikey: true,
   },
+  zdr: {
+    mode: "none",
+    note: "DeepSeek keeps your data for as long as it says it needs to and while you have an account. It gives no time limit for API prompts and no way to turn on zero retention.",
+    docs: "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html",
+  },
 };

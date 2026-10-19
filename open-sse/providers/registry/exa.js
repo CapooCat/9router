@@ -46,5 +46,10 @@ export default {
     ],
     maxCharacters: 100000,
     timeoutMs: 15000
-  }
+  },
+  zdr: {
+    mode: "account",
+    note: "Not on by default, and Exa does not publish how long it otherwise keeps queries. Zero retention is an Enterprise-plan option that Exa turns on for your team; contact sales@exa.ai.",
+    docs: "https://exa.ai/docs/admin/security/zero-data-retention",
+  },
 };

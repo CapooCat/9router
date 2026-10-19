@@ -30,7 +30,7 @@ export default {
   ],
   zdr: {
     mode: "default",
-    note: "Prompt content, API requests/responses and chat logs are not retained — data is processed for the response and discarded, never stored, logged or reused for training. Nothing to enable.",
+    note: "Prompts, API requests and responses, and chat logs are not kept. Only account and usage data such as token counts is retained, so there is nothing to turn on.",
     docs: "https://support.cerebras.net/articles/1811589793-does-cerebras-retain-my-data",
   },
 };

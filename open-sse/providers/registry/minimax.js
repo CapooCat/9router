@@ -81,4 +81,9 @@ export default {
     usage: true,
     usageApikey: true,
   },
+  zdr: {
+    mode: "none",
+    note: "MiniMax keeps data as long as it considers necessary or the law allows, with no time limit for API prompts. There's no zero-retention option.",
+    docs: "https://platform.minimax.io/protocol/privacy-policy",
+  },
 };

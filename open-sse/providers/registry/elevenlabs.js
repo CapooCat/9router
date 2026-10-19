@@ -58,5 +58,10 @@ export default {
     // OpenAI response_format → Scribe `additional_formats[].format`. Requests the
     // matching extra render alongside the JSON body; the engine then serves it.
     responseFormats: { segments: "seg_json", subtitles: "srt", captions: "vtt" }
-  }
+  },
+  zdr: {
+    mode: "account",
+    note: "Not on by default: ElevenLabs keeps your text and audio in request history and logs, and deleted items can stay in backups for up to 30 days. Zero retention is only for approved Enterprise customers, and it has to be requested on each call through a URL option that the router does not add.",
+    docs: "https://elevenlabs.io/docs/eleven-api/resources/zero-retention-mode",
+  },
 }

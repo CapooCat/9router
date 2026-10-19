@@ -63,4 +63,9 @@ export default {
   features: {
     usage: true,
   },
+  zdr: {
+    mode: "account",
+    note: "Turn on Privacy Mode in Cursor Settings → General (on by default for teams; admins can enforce it). Cursor then has zero-retention deals with its model providers and won't train on your code, though prompts flagged by abuse checks may be kept.",
+    docs: "https://cursor.com/data-use",
+  },
 };

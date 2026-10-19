@@ -83,9 +83,8 @@ export default {
   imageConfig: { baseUrl: "https://api.openai.com/v1/images/generations" },
   searchViaChat: { defaultModel: "gpt-4o-mini", pricingUrl: "https://openai.com/api/pricing" },
   zdr: {
-    mode: "request",
-    body: { store: false },
-    note: "store:false is the only per-request knob — it keeps prompts/outputs out of stored Responses and Chat Completions. Full ZDR (no abuse-monitoring retention either) needs an enterprise agreement, and under it store is forced false regardless.",
+    mode: "account",
+    note: "Prompts and responses are kept up to 30 days for abuse monitoring, and saved Responses/Chat Completions are kept 30 days unless the app turns storage off. Zero retention needs OpenAI's approval (contact sales); once approved, turn it on under Settings → Organization → Data controls → Data retention.",
     docs: "https://developers.openai.com/api/docs/guides/your-data",
   },
 };

@@ -46,4 +46,9 @@ export default {
     usage: true,
     usageApikey: true,
   },
+  zdr: {
+    mode: "default",
+    note: "For cloud models, Ollama says prompts and responses aren't stored beyond the time needed to answer the request and are never used for training. Nothing to turn on.",
+    docs: "https://ollama.com/privacy",
+  },
 };

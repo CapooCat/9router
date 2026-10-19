@@ -29,4 +29,9 @@ export default {
     { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
     { id: "glm-4.7", name: "GLM 4.7" },
   ],
+  zdr: {
+    mode: "account",
+    note: "Prompts and responses are kept up to 30 days by default. Enterprise customers can ask their Alibaba Cloud account manager to turn on zero retention for a workspace; it covers only listed models (newer Qwen, DeepSeek and GLM series), and other models in that workspace still keep data for 30 days.",
+    docs: "https://www.alibabacloud.com/help/en/model-studio/data-retention-policy",
+  },
 };

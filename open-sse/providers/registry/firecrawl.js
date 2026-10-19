@@ -30,5 +30,10 @@ export default {
     ],
     maxCharacters: 200000,
     timeoutMs: 30000
-  }
+  },
+  zdr: {
+    mode: "account",
+    note: "Not on by default. Zero retention is an Enterprise-plan option that Firecrawl must enable for your team, and it then has to be requested on each call inside the request itself, which the router does not change.",
+    docs: "https://docs.firecrawl.dev/features/scrape#zero-data-retention-zdr",
+  },
 };

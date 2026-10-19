@@ -27,4 +27,9 @@ export default {
     { id: "poolside/laguna-s-2.1", name: "Laguna S 2.1" },
     { id: "poolside/laguna-xs-2.1", name: "Laguna XS 2.1" },
   ],
+  zdr: {
+    mode: "none",
+    note: "Poolside keeps data as long as it needs to and may use it to train its models unless you opt out. There's no zero-retention option for the API.",
+    docs: "https://poolside.ai/privacy",
+  },
 };

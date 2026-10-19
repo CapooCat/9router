@@ -30,5 +30,10 @@ export default {
     maxMaxResults: 50,
     timeoutMs: 10000,
     cacheTTLMs: 300000
-  }
+  },
+  zdr: {
+    mode: "account",
+    note: "Not on by default. Ask Linkup to turn on zero retention (book a call or email contact@linkup.so); queries and results are then never written to storage.",
+    docs: "https://docs.linkup.so/pages/security-and-privacy/data-processing-privacy",
+  },
 };

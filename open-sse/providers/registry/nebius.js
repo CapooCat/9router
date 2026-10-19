@@ -26,7 +26,7 @@ export default {
   embeddingConfig: { baseUrl: "https://api.tokenfactory.nebius.com/v1/embeddings" },
   zdr: {
     mode: "account",
-    note: "Off unless you switch it on in your account profile page. Until you do, Nebius KEEPS your inputs and outputs to speed up inference via speculative decoding (never for training). With ZDR on, nothing is stored after the request.",
+    note: "Off by default: Nebius keeps your prompts and responses (stored in Finland) to speed up inference, but never uses them for training. Turn on Zero Data Retention on your account profile page; it then covers every project in your organization.",
     docs: "https://docs.tokenfactory.nebius.com/legal/legal-quick-guide",
   },
 };

@@ -60,4 +60,9 @@ export default {
     authHeader: "bearer",
   },
   imageConfig: { baseUrl: "https://api.cloudflare.com/client/v4/accounts" },
+  zdr: {
+    mode: "default",
+    note: "Prompts and responses aren't kept once the request is done and aren't used for training. They're stored only if you turn on a feature that stores them, such as AI Gateway logging or caching.",
+    docs: "https://developers.cloudflare.com/workers-ai/platform/data-usage/",
+  },
 };

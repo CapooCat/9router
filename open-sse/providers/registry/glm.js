@@ -90,4 +90,9 @@ export default {
     usage: true,
     usageApikey: true,
   },
+  zdr: {
+    mode: "default",
+    note: "Z.ai's API data terms say prompts and responses are processed in real time and not saved on its servers. Nothing to turn on.",
+    docs: "https://docs.z.ai/legal-agreement/privacy-policy",
+  },
 };

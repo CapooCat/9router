@@ -29,7 +29,7 @@ export default {
   serviceKinds: ["llm","imageToText"],
   zdr: {
     mode: "account",
-    note: "ZDR is a commercial-agreement option, not a request flag; without it inputs/outputs are deleted within 30 days. Since 2026-06-09 Mythos-class models retain prompts and outputs for 30 days even under a ZDR agreement. Usage-policy-flagged conversations are kept 2 years.",
+    note: "Prompts and responses are deleted within 30 days by default (chats flagged for policy violations can be kept up to 2 years). Zero retention needs a signed agreement through Anthropic sales, and even then Claude Fable and Mythos models keep data for 30 days.",
     docs: "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
   },
 };

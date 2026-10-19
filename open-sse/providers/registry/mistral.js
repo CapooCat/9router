@@ -30,7 +30,7 @@ export default {
   embeddingConfig: { baseUrl: "https://api.mistral.ai/v1/embeddings", authType: "apikey", authHeader: "bearer" },
   zdr: {
     mode: "account",
-    note: "Paid API traffic is not used for training; default abuse-monitoring retention is 30 days. Zero data retention (stateless calls) is a Scale-plan option. The free Experiment tier CAN train on inputs unless you opt out.",
-    docs: "https://mistral.ai/terms",
+    note: "API prompts and responses are kept for 30 days to check for abuse. Pay-as-you-go customers can ask Mistral support for zero retention (each request is reviewed); once approved it shows under Admin Panel → Vibe → Privacy and covers plain API calls like chat, but not Agents, Batch, Files or Conversations.",
+    docs: "https://docs.mistral.ai/admin/monitor-comply/zero-data-retention",
   },
 };

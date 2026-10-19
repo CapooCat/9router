@@ -8,6 +8,7 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import { MEDIA_PROVIDER_KINDS, AI_PROVIDERS, isCustomEmbeddingProvider } from "@/shared/constants/providers";
 import ConnectionsCard from "@/app/(dashboard)/dashboard/providers/components/ConnectionsCard";
 import ModelsCard from "./components/MediaModelsCard"; // [fork] adds remove/restore of models
+import ZeroDataRetentionCard from "@/app/(dashboard)/dashboard/providers/[id]/components/ZeroDataRetentionCard"; // [fork]
 import { KIND_EXAMPLE_CONFIG } from "./components/exampleShared";
 import { EmbeddingExampleCard } from "./components/EmbeddingExampleCard";
 import { TtsExampleCard } from "./components/TtsExampleCard";
@@ -161,6 +162,8 @@ export default function MediaProviderDetailPage() {
       ) : (
         <ConnectionsCard providerId={id} isOAuth={false} />
       )}
+
+      {!isCustom && <ZeroDataRetentionCard providerId={id} />} {/* [fork] renders nothing when no policy declared */}
 
       {/* Models - hidden for tts/webSearch/webFetch (provider IS the model); custom uses prefix as alias */}
       {kind !== "tts" && kind !== "webSearch" && kind !== "webFetch" && (

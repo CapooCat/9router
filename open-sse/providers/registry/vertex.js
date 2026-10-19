@@ -37,8 +37,8 @@ export default {
   serviceKinds: ["llm","imageToText","video"],
   zdr: {
     mode: "account",
-    note: "Paid Vertex traffic is never used to improve Google's products, but zero-retention-equivalent terms come from a Data Processing Addendum amendment arranged with your Google Cloud account team — no request flag. Search grounding still stores 30 days.",
-    docs: "https://cloud.google.com/vertex-ai/generative-ai/docs/data-governance",
+    note: "Prompts flagged by abuse filters can be kept up to 90 days, and responses are cached up to 24 hours by default. For zero retention, ask Google Cloud for an abuse-monitoring exception (Cloud Master Agreement customers are already exempt) and turn off caching for your project; Search grounding still keeps queries 3 days, and Claude Fable/Mythos are always logged 30 days.",
+    docs: "https://docs.cloud.google.com/gemini-enterprise-agent-platform/resources/zero-data-retention",
   },
   // Veo via predictLongRunning + fetchPredictOperation (adapter: handlers/videoProviders/vertex.js).
   // Docs: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/veo-video-generation

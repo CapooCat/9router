@@ -75,10 +75,9 @@ export default {
   modelsFetcher: { url: "https://openrouter.ai/api/v1/models", type: "openrouter-free" },
   passthroughModels: true,
   zdr: {
-    mode: "request",
-    body: { provider: { zdr: true } },
+    mode: "account",
     restrictsRouting: true,
-    note: "Routes only to endpoints with a zero-retention policy; a model with no ZDR endpoint fails instead of falling back. ORs with the account-wide setting. In-memory prompt caching is not counted as retention.",
+    note: "OpenRouter keeps no prompts unless you opt in to logging, but the provider behind a model may. To get zero retention, turn on the ZDR toggles in OpenRouter Settings → Privacy (or on a guardrail for specific keys); requests then go only to zero-retention providers, and models without one become unavailable.",
     docs: "https://openrouter.ai/docs/guides/features/zdr",
   },
 };

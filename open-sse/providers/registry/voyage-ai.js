@@ -27,4 +27,9 @@ export default {
   ],
   serviceKinds: ["embedding"],
   embeddingConfig: { baseUrl: "https://api.voyageai.com/v1/embeddings" },
+  zdr: {
+    mode: "account",
+    note: "Not on by default: Voyage may store your inputs and use them to train its models. An organization admin with a payment method on file can switch to Opted Out under Organization > Terms of Service in the Voyage dashboard, which gives zero-day retention (switching back needs an email to Voyage).",
+    docs: "https://docs.voyageai.com/docs/faq",
+  },
 };

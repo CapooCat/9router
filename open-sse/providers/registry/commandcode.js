@@ -55,7 +55,8 @@ export default {
     mode: "request",
     headers: { "x-cmd-zdr": "1" },
     restrictsRouting: true,
-    note: "Free-tier models FAIL with x-cmd-zdr set — the zero-retention pool does not serve them. Turn this on only for paid models. The header is deliberately kept out of transport.headers for that reason, so it deviates from the CLI fingerprint (which always sends it) only while you have it enabled.",
+    note: "Without the header, Command Code can keep prompts and responses for up to 30 days. With the header, requests only go to zero-retention providers, and models without one fail with error 422 instead of falling back. Free-tier models may be among them, so add it only for paid models.",
+    docs: "https://commandcode.ai/docs/resources/zdr",
   },
   features: {
     usage: true,

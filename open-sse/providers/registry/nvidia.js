@@ -42,4 +42,9 @@ export default {
     format: "nvidia-tts",
   },
   embeddingConfig: { baseUrl: "https://integrate.api.nvidia.com/v1/embeddings", authType: "apikey", authHeader: "bearer" },
+  zdr: {
+    mode: "none",
+    note: "On free build.nvidia.com trial keys, NVIDIA may collect your prompts and outputs to improve its products and models, and logs usage for security. There's no zero-retention option.",
+    docs: "https://assets.ngc.nvidia.com/products/api-catalog/legal/NVIDIA%20API%20Trial%20Terms%20of%20Service.pdf",
+  },
 };

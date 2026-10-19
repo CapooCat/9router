@@ -31,4 +31,9 @@ export default {
   ],
   serviceKinds: ["image"],
   imageConfig: { baseUrl: "https://queue.fal.run" },
+  zdr: {
+    mode: "account",
+    note: "Not on by default: fal keeps your prompts and results in request history for 90 days, and generated files stay on fal's file storage. Add header X-Fal-Store-IO: 0 to stop the request-history copy, but full zero retention needs an agreement with fal's sales team.",
+    docs: "https://fal.ai/docs/model-apis/data-retention",
+  },
 };

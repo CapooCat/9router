@@ -46,5 +46,10 @@ export default {
     ],
     maxCharacters: 100000,
     timeoutMs: 15000
-  }
+  },
+  zdr: {
+    mode: "account",
+    note: "Tavily may keep your search queries to improve its service while 'Allow use of query data' is on. Switch it off in your Tavily account settings and Tavily says your queries are not stored; no retention period is published.",
+    docs: "https://help.tavily.com/articles/4205958832-understanding-the-allow-use-of-query-data-setting",
+  },
 };

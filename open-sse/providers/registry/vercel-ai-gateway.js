@@ -39,10 +39,9 @@ export default {
     usageApikey: true,
   },
   zdr: {
-    mode: "request",
-    body: { providerOptions: { gateway: { zeroDataRetention: true } } },
+    mode: "account",
     restrictsRouting: true,
-    note: "Pro/Enterprise only. Filters the routing set (and any fallbacks) to providers Vercel holds a ZDR agreement with; returns no_providers_available when none serve the model. BYOK keys are skipped unless marked ZDR in the dashboard.",
+    note: "Vercel itself keeps no prompts or responses. Pro and Enterprise teams can turn on Zero Data Retention in AI Gateway Dashboard → Settings ($0.10 per 1,000 requests) so requests only go to zero-retention providers; models with none fail, your own provider keys are skipped unless marked ZDR, and Claude Fable 5 never supports it.",
     docs: "https://vercel.com/docs/ai-gateway/security-and-compliance/zdr",
   },
 };

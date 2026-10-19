@@ -20,7 +20,7 @@ export default {
   },
   zdr: {
     mode: "account",
-    note: "No portal toggle: ZDR comes from the Limited Access \"modified abuse monitoring\" approval (aka.ms/oai/modifiedaccess), EA/MCA customers only. Until approved, prompts and completions are retained up to 30 days for abuse review.",
-    docs: "https://learn.microsoft.com/en-us/legal/cognitive-services/openai/data-privacy",
+    note: "Prompts flagged by Microsoft's abuse checks can be stored for staff to review, and features like the Responses API, Assistants and stored completions keep data until you delete it. To stop abuse-review storage, apply for 'modified abuse monitoring' (aka.ms/oai/modifiedaccess); only customers managed by a Microsoft account team qualify, and there is no switch in the portal.",
+    docs: "https://learn.microsoft.com/en-us/azure/foundry/responsible-ai/openai/data-privacy",
   },
 };

@@ -26,4 +26,9 @@ export default {
     { id: "morph-qwen36-27b", name: "Qwen 3.6 27B (Morph)", contextLength: 262144 },
     { id: "morph-dsv4flash", name: "DeepSeek V4 Flash (Morph)", contextLength: 1048576 },
   ],
+  zdr: {
+    mode: "account",
+    note: "Free tier keeps your code and prompts up to 90 days, paid tier up to 30 days. Zero retention is only on the Enterprise tier: contact sales@morphllm.com.",
+    docs: "https://www.morphllm.com/privacy",
+  },
 };

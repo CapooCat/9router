@@ -6,21 +6,22 @@ import { getZdrPolicy } from "open-sse/providers/zdr.js";
 /**
  * Shield marking that a provider offers zero data retention at all.
  *
- * Capability only — it says nothing about whether ZDR is currently switched on,
- * which is per-provider state that lives on the provider's own page. Renders
+ * Capability only — it says nothing about whether ZDR is actually in effect
+ * (custom header added / account setting enabled). Renders
  * nothing when the upstream published no policy: silence means "unknown
  * retention", and a shield on every card would read as a guarantee nobody made.
  */
 
 const MODE_TITLE = {
-  request: "Zero data retention — available per request",
-  default: "Zero data retention — retains nothing by default",
-  account: "Zero data retention — enable it on the provider's own console",
+  request: "Zero data retention available — add a header in Custom Headers to turn it on",
+  default: "Zero data retention on by default — prompts and responses aren't stored",
+  account: "Zero data retention available — turn it on in your account with this provider",
 };
 
 export default function ZdrShield({ providerId }) {
   const policy = getZdrPolicy(providerId);
-  if (!policy) return null;
+  // "none" = vendor states there is no zero-retention path; a shield would claim one
+  if (!policy || policy.mode === "none") return null;
 
   return (
     <span

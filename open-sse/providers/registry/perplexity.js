@@ -32,4 +32,10 @@ export default {
     endpoint: "https://api.perplexity.ai/chat/completions",
     pricingUrl: "https://docs.perplexity.ai/guides/pricing",
   },
+  zdr: {
+    mode: "account",
+    restrictsRouting: true,
+    note: "Not on by default, and Perplexity says not to assume zero retention unless it's enabled for your account. It's available only to eligible customers under a written agreement; once on, models whose providers don't support it return an error.",
+    docs: "https://docs.perplexity.ai/docs/resources/privacy-security",
+  },
 };

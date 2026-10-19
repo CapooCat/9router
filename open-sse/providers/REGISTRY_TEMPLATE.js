@@ -94,9 +94,8 @@ export default {
   // ── zero data retention → PROVIDER_ZDR[id] (see providers/zdr.js) ────────
   // Declare ONLY what the vendor documents; leave the block out when unknown.
   // zdr: {
-  //   mode: "request",                       // "request" | "account" | "default"
-  //   body: { store: false },                // deep-merged into the outbound body when ZDR is on
-  //   headers: { "x-example-zdr": "1" },     // merged onto upstream headers when ZDR is on
+  //   mode: "request",                       // "request" | "account" | "default" | "none"
+  //   headers: { "x-example-zdr": "1" },     // shown as the Custom Headers row to add (never auto-sent)
   //   restrictsRouting: true,                // enabling it can fail the request (filtered endpoints / excluded models)
   //   note: "Enterprise agreement only; abuse-monitoring retention still applies.",
   //   docs: "https://example.com/docs/zdr",

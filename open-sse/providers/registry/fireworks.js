@@ -28,7 +28,7 @@ export default {
   embeddingConfig: { baseUrl: "https://api.fireworks.ai/inference/v1/embeddings" },
   zdr: {
     mode: "default",
-    note: "Zero data retention by default for open models — prompts and generations stay in volatile memory (token-count metadata is still logged, and prompt-cache KV blocks can live minutes). The Responses API is the exception: conversations persist 30 days unless the request sets store:false.",
+    note: "Open models keep no prompts or responses by default; only usage data like token counts is logged. The Responses API is the exception and saves conversations for 30 days unless the app turns storage off; Enterprise admins can block every feature that stores data under Settings → Governances → Zero Data Retention.",
     docs: "https://docs.fireworks.ai/guides/security_compliance/data_handling",
   },
 };

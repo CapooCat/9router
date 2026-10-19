@@ -31,4 +31,9 @@ export default {
     { id: "moonshotai/Kimi-K2.6", name: "Kimi K2.6" },
     { id: "moonshotai/Kimi-K2.5", name: "Kimi K2.5" },
   ],
+  zdr: {
+    mode: "default",
+    note: "Featherless says it doesn't log or store chats, prompts or completions sent through its API; requests are processed in real time. Nothing to turn on.",
+    docs: "https://featherless.ai/docs/privacy-and-logging",
+  },
 };

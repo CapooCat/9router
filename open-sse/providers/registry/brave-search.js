@@ -31,5 +31,10 @@ export default {
     maxMaxResults: 20,
     timeoutMs: 10000,
     cacheTTLMs: 300000
-  }
+  },
+  zdr: {
+    mode: "account",
+    note: "Not on by default: search queries are kept for up to 90 days for billing, troubleshooting and abuse prevention. Customers on a custom Enterprise plan can ask Brave API support to turn on zero retention.",
+    docs: "https://api-dashboard.search.brave.com/privacy-policy",
+  },
 };

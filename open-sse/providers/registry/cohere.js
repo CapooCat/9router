@@ -22,4 +22,9 @@ export default {
     { id: "command-r-08-2024", name: "Command R (Aug 2024)" },
     { id: "command-a-03-2025", name: "Command A (Mar 2025)" },
   ],
+  zdr: {
+    mode: "account",
+    note: "Logged prompts and responses are deleted after 30 days, and you can stop them being used for training under Dashboard → Settings → Data Controls. Zero retention is only for approved enterprise customers: email support@cohere.com (copy your sales rep).",
+    docs: "https://cohere.com/data-usage-policy",
+  },
 };

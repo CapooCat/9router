@@ -28,7 +28,6 @@ import { compressMessages, formatRtkLog } from "../rtk/index.js";
 import { compressWithHeadroom, formatHeadroomLog, formatHeadroomSizeLog, isHeadroomPhantomSavings } from "../rtk/headroom.js";
 import { compressWithPxpipe } from "../rtk/pxpipe.js";
 import { getCapabilitiesForModel } from "../providers/capabilities.js";
-import { applyZdrToBody, zdrHeadersFor } from "../providers/zdr.js";
 import { observeCompatibleUpstream } from "../services/serverProps.js"; // [fork]
 import { stripUnsupportedModalities } from "../translator/concerns/modality.js";
 import { prefetchRemoteImages } from "../translator/concerns/prefetch.js";
@@ -62,7 +61,7 @@ export function stripContinuityFields(body) {
   return body;
 }
 
-export async function handleChatCore({ body, modelInfo, credentials, log, onCredentialsRefreshed, onRequestSuccess, onDisconnect, clientRawRequest, connectionId, userAgent, apiKey, ccFilterNaming, rtkEnabled, headroomEnabled, headroomUrl, headroomCompressUserMessages, headroomTimeoutMs, cavemanEnabled, cavemanLevel, ponytailEnabled, ponytailLevel, pxpipeEnabled, pxpipeMinChars, pxpipeTimeoutMs, pxpipeTransform, onPxpipeEvent, sourceFormatOverride, providerThinking, providerOverrides, zdrEnabled }) {
+export async function handleChatCore({ body, modelInfo, credentials, log, onCredentialsRefreshed, onRequestSuccess, onDisconnect, clientRawRequest, connectionId, userAgent, apiKey, ccFilterNaming, rtkEnabled, headroomEnabled, headroomUrl, headroomCompressUserMessages, headroomTimeoutMs, cavemanEnabled, cavemanLevel, ponytailEnabled, ponytailLevel, pxpipeEnabled, pxpipeMinChars, pxpipeTimeoutMs, pxpipeTransform, onPxpipeEvent, sourceFormatOverride, providerThinking, providerOverrides }) {
   const { provider, model } = modelInfo;
   const requestStartTime = Date.now();
   // Stable per-session color so all lines of one CLI conversation share a tag
@@ -333,18 +332,6 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
     try { onPxpipeEvent?.({ provider, model, ...pxpipeSummary }); } catch { /* stats must not break requests */ }
   }
 
-  // ZDR: opt-in per-provider retention knobs, applied last so no saver can undo them.
-  // Body knobs are merged into the outbound payload (ZDR wins over whatever the client
-  // sent); header knobs ride along as upstreamExtraHeaders. Providers whose ZDR is an
-  // account/contract setting declare no knob and are a no-op here — see providers/zdr.js.
-  let zdrExtraHeaders = null;
-  if (zdrEnabled) {
-    const zdrBodyLabel = applyZdrToBody(provider, translatedBody);
-    zdrExtraHeaders = zdrHeadersFor(provider);
-    const zdrParts = [zdrBodyLabel, zdrExtraHeaders && Object.keys(zdrExtraHeaders).join(",")].filter(Boolean);
-    if (zdrParts.length) xf.push(`ZDR:${zdrParts.join(" ")}`);
-  }
-
   if (xf.length && log?.line) log.line(reqTag, "⚙", xf.join(" · "));
 
   // Pin cache breakpoints to the final body — every saver above can reshape
@@ -421,7 +408,6 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
       log,
       proxyOptions,
       providerOverrides,
-      upstreamExtraHeaders: zdrExtraHeaders,
     });
     providerResponse = result.response;
     providerUrl = result.url;
@@ -491,7 +477,6 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
             log,
             proxyOptions,
             providerOverrides,
-            upstreamExtraHeaders: zdrExtraHeaders,
           });
           if (retryResult.response.ok) {
             providerResponse = retryResult.response;

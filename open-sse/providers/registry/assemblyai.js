@@ -35,4 +35,9 @@ export default {
     authHeader: "authorization",
     format: "assemblyai",
   },
+  zdr: {
+    mode: "none",
+    note: "Not zero retention for file transcription: uploaded audio is deleted within 1 to 2 days and transcripts are kept for 30 days. On a paid plan, an admin can shorten this to as little as 1 hour and opt out of model training under Data Controls in the AssemblyAI dashboard.",
+    docs: "https://www.assemblyai.com/docs/data-retention-and-model-training",
+  },
 };

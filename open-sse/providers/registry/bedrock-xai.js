@@ -48,4 +48,9 @@ export default {
     { id: "global.xai.grok-4.6", name: "Grok 4.6 (global)" },
   ],
   hasProviderSpecificData: true,
+  zdr: {
+    mode: "account",
+    note: "AWS doesn't share Grok prompts with xAI, and Grok isn't on AWS's list of models whose traffic is kept for abuse checks. To guarantee zero retention, set your account's Bedrock data retention mode to \"none\" in each Region (API only, no console switch yet).",
+    docs: "https://docs.aws.amazon.com/bedrock/latest/userguide/data-retention.html",
+  },
 };

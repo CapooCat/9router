@@ -30,4 +30,9 @@ export default {
   ],
   serviceKinds: ["stt"],
   sttConfig: { baseUrl: "https://api.deepgram.com/v1/listen", authType: "apikey", authHeader: "token", format: "deepgram" },
+  zdr: {
+    mode: "account",
+    note: "Not on by default: Deepgram keeps your audio, text and transcripts to improve its models. Zero retention needs an opt-out flag in the URL of every request, which the router does not add, so contact Deepgram to enforce the opt-out for your whole account.",
+    docs: "https://developers.deepgram.com/trust-security/your-data",
+  },
 };

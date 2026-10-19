@@ -51,4 +51,4 @@ for (const entry of REGISTRY) {
 Object.assign(PROVIDER_MODELS, buildTtsProviderModels());
 
 // Zero-data-retention policies live outside PROVIDERS (transport is baseline-compared)
-export { PROVIDER_ZDR, getZdrPolicy, listZdrPolicies, applyZdrToBody, zdrHeadersFor } from "./zdr.js";
+export { PROVIDER_ZDR, getZdrPolicy, listZdrPolicies } from "./zdr.js";

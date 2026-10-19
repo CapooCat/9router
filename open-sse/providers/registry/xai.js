@@ -48,7 +48,7 @@ export default {
   },
   zdr: {
     mode: "account",
-    note: "Not ZDR by default — requests/responses are stored encrypted for 30 days (never trained on without permission). Team admins can self-serve ZDR in the xAI Console; it applies to every key on the team and disables the stateful Responses API, Files, Collections and Batch. Responses carry x-zero-data-retention: true|false.",
+    note: "Not on by default: prompts and responses are kept encrypted for 30 days. Team admins can turn on zero retention in the xAI Console under Team Settings (delete existing Files and Collections first); it applies to every key on the team and switches off features that save data, like Files, Collections and Batch.",
     docs: "https://docs.x.ai/developers/faq/security",
   },
 };

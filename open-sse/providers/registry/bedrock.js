@@ -74,4 +74,10 @@ export default {
     { id: "us.anthropic.claude-3-haiku-20240307-v1:0", name: "Claude 3 Haiku" },
   ],
   hasProviderSpecificData: true,
+  zdr: {
+    mode: "account",
+    restrictsRouting: true,
+    note: "AWS never shares your prompts with the model maker and most models keep nothing, but some (OpenAI GPT models, Claude Fable 5) keep traffic up to 30 days for abuse checks. For guaranteed zero retention, set your account's Bedrock data retention mode to \"none\" in each Region (API only, no console switch yet); models that require retention will then refuse requests.",
+    docs: "https://docs.aws.amazon.com/bedrock/latest/userguide/data-retention.html",
+  },
 };

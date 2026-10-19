@@ -113,4 +113,9 @@ export default {
   features: {
     usage: true,
   },
+  zdr: {
+    mode: "none",
+    note: "OpenAI's API zero retention doesn't apply to Codex through a ChatGPT plan. On Plus/Pro your chats may be used for training unless you turn that off in ChatGPT's data controls; Business and Enterprise follow your workspace's retention settings.",
+    docs: "https://help.openai.com/en/articles/11369540-using-codex-with-your-chatgpt-plan",
+  },
 };

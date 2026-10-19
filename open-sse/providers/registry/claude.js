@@ -85,4 +85,9 @@ export default {
   features: {
     usage: true,
   },
+  zdr: {
+    mode: "none",
+    note: "Claude Free, Pro and Max plans (including Claude Code on them) have no zero-retention option. Deleted chats are removed within 30 days, data is kept up to 5 years if you allow training, and flagged chats up to 2 years.",
+    docs: "https://privacy.claude.com/en/articles/10023548-how-long-do-you-store-my-data",
+  },
 };

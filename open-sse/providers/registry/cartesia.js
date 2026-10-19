@@ -32,5 +32,10 @@ export default {
       }
     ]
   },
-  hidden: true
+  hidden: true,
+  zdr: {
+    mode: "account",
+    note: "Not on by default. Enterprise customers can turn on zero retention in the Cartesia dashboard's organization privacy settings; your text and audio are then not kept, though voice cloning is not covered.",
+    docs: "https://docs.cartesia.ai/enterprise/zero-data-retention",
+  },
 };

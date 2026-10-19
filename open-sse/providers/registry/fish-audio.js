@@ -28,4 +28,9 @@ export default {
       { id: "s1", name: "S1" },
     ],
   },
+  zdr: {
+    mode: "account",
+    note: "Not on by default, and Fish Audio does not say how long it otherwise keeps request text and audio. Zero retention (text and audio never written to disk) is only available under an enterprise contract.",
+    docs: "https://fish.audio/enterprise/",
+  },
 };

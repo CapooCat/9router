@@ -42,8 +42,8 @@ export default {
   },
   zdr: {
     mode: "default",
-    note: "No inference data retained by default and no training on inputs/outputs. Prompts may still be logged (max 30 days) while troubleshooting or investigating abuse; opt out of that — and enable full ZDR — self-serve under Console → Data Controls.",
-    docs: "https://console.groq.com/docs/legal",
+    note: "Nothing is kept by default, but prompts may be logged for up to 30 days while Groq investigates errors or abuse, and batch files are kept 30 days. Org admins can switch off that logging and turn on full zero retention under Console → Settings → Data Controls.",
+    docs: "https://console.groq.com/docs/your-data",
   },
   features: {
     usage: true,

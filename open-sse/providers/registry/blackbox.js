@@ -39,10 +39,9 @@ export default {
     { id: "grok-4.3",          name: "Grok 4.3",          upstreamModelId: "blackboxai/x-ai/grok-4.3" },
   ],
   zdr: {
-    mode: "request",
-    body: { provider: { zdr: true } },
+    mode: "account",
     restrictsRouting: true,
-    note: "Blackbox's own layer already discards prompts, code context and completions from memory after the response — the flag is about the UPSTREAM hop: it restricts routing to endpoints that themselves hold a zero-retention policy, so a model with none fails instead of falling back. ORs with the account-wide setting. Codex-style encrypted_content is decrypted in memory only, so reasoning continuity survives ZDR.",
+    note: "Blackbox itself keeps no prompts or responses. To make sure the model provider behind it keeps nothing either, ZDR must be on for your Blackbox account; models with no zero-retention provider then fail. Blackbox's blog says this is automatic on every plan, but its API docs call it an account setting.",
     docs: "https://docs.blackbox.ai/api-reference/zdr",
   },
 };

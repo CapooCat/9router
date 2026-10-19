@@ -30,7 +30,7 @@ export default {
   embeddingConfig: { baseUrl: "https://api.together.xyz/v1/embeddings" },
   zdr: {
     mode: "account",
-    note: "No training on customer data without explicit opt-in; zero data retention is supported but arranged on the account, not per request.",
-    docs: "https://www.together.ai/legal/privacy-policy",
+    note: "Off by default: Together stores your prompts and responses and may use them to improve its product, though not to train models unless you opt in. An org admin can stop this under Organization Settings → Privacy by setting 'Store prompts and model responses' to No; this also switches off passthrough models, and uploaded fine-tuning or batch files are still kept.",
+    docs: "https://docs.together.ai/docs/zero-data-retention",
   },
 };
